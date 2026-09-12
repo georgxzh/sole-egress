@@ -1,4 +1,4 @@
-#set document(title: "SEP-1: A Sole-Egress Package-Broker Profile for Model-Evaluation Sandboxes", author: "Sole-Egress team")
+#set document(title: "SEP-1: A Sole-Egress Package-Broker Profile for Model-Evaluation Sandboxes", author: "Zhixuan Xu")
 #set page(paper: "a4", margin: (x: 1.6cm, y: 1.7cm), numbering: "1", footer: context [
   #set text(7.5pt, fill: luma(110))
   #h(1fr) SEP-1 profile · Apart AI Incident Response Sprint · Track 1 (Containment) #h(1fr)
@@ -15,7 +15,11 @@
   #text(15.5pt, weight: "bold")[An egress allowlist is a compliance instrument, \ not a containment instrument]
   #v(2pt)
   #text(11pt)[SEP-1: a Sole-Egress Package-Broker Profile for model-evaluation sandboxes]
-  #v(4pt)
+  #v(5pt)
+  #text(10.5pt, weight: "medium")[Zhixuan Xu]
+  #v(1.5pt)
+  #text(8.4pt)[University of Waterloo, Waterloo, ON, Canada · #link("mailto:george.xu@uwaterloo.ca")[george.xu\@uwaterloo.ca] · ORCID #link("https://orcid.org/0009-0007-3691-3054")[0009-0007-3691-3054]]
+  #v(3pt)
   #text(9pt)[Apart Research — AI Incident Response Sprint · #smallcaps[Track 1 — Containment] · September 2026]
 ]
 #v(4pt)
