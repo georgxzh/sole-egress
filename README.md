@@ -72,6 +72,17 @@ log, by contrast, **is** a list of the lab's own destinations — it *cannot* be
 shared with an external verifier without disclosing lab-network information. That
 asymmetry is the argument.
 
+**Scope of the guarantee (stated plainly).** `verify` proves *what was tested* —
+the same public probe suite and lockfile, an intact hash chain — without lab-network
+access. It does **not** prove the lab's runtime honestly enforced SEP-1: an operator
+controlling both broker and transcript could fabricate a passing report. Closing that
+needs the broker to sign transcript entries with a key bound to an attested runtime
+(remote attestation), which is future work. See the report's appendix (limitation 8).
+
+> **Run it once at a time.** `run --local` uses fixed loopback ports and a single
+> `results/` directory; two overlapping runs corrupt each other's transcript by
+> design. Let one finish before starting another.
+
 ## Repository layout
 
 ```

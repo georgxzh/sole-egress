@@ -16,6 +16,6 @@ experiment, the conformance report, the limitations appendix.
 | P3 full probe suite, sole-verify scoring, channel capacity | 3h | DONE | 12 probes; bits/hour measured. |
 | P4 real runs, results/ committed, figures | 1.5h | DONE | conformance-report.json + figures. |
 | P5 report vs template, claims.json complete | 4h | DONE | ≤8pp Typst PDF. |
-| P6 self-verification loop (§9) | 2.5h | DONE | hostile-judge pass; VERIFICATION.md. |
+| P6 self-verification loop (§9) | 2.5h | DONE* | Hostile-judge subagent launched but rate-limited before finishing; it flagged an apparent `verify` nondeterminism, diagnosed as concurrent-run contention (not a single-run defect). Self-review completed the loop. Fixes: deterministic channel bound (S1), functionality check (S2), runtime-honesty limitation (S3). See VERIFICATION.md. Pending (needs a session with command execution): recompile report.pdf from the latest report.typ, one clean `run→verify` confirmation, Docker `compose up` validation, final commit. |
 
 Status updated as phases complete.

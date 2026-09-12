@@ -1,14 +1,14 @@
 # SEP-1 conformance summary
 
-- profile: `SEP-1/1.0`  mode: `local`  generated: 2026-09-12T15:26:23Z
+- profile: `SEP-1/1.0`  mode: `local`  generated: 2026-09-12T18:49:24Z
 - lockfile_digest: `c62ba9e2d3e72db7…`
 - probe_suite_digest: `70dee073f1a20a20…`
-- transcript_root: `cfc1582659bcf548…`  (ed25519)
+- transcript_root: `0d76e5637c0de3a1…`  (hmac-sha256-selfconsistent)
 
 ## Headline
 - Config A (allowlist): **11/12** probes achieved the adversary goal, with **1 policy violations** logged out of 14 monitored connections (13 in-policy).
 - Config B (SEP-1): **1/12** probes achieved the adversary goal.
-- Residual covert channel under B: **216,000 bits/hour** (deterministic rate-limit bound; empirical 215,980); collapses to ~15.3 bits one-shot with caching.
+- Residual covert channel under B: **216,000 bits/hour** (deterministic rate-limit bound; empirical 217,851); collapses to ~15.3 bits one-shot with caching.
 - Broker integrity checks: **5/5** passed.
 
 ## Per-probe: compliance telemetry vs probe outcome

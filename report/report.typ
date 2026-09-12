@@ -274,7 +274,7 @@ an already-public forensic timeline; we add no offensive technique.
 The one genuine dual-use residual is control S9: *quantifying* the covert channel also quantifies
 something an adversary could use. We publish it anyway, because a containment control with an unmeasured
 residual capacity cannot be evaluated — an unmeasured channel is not a smaller channel, only an unknown
-one. The measured figure (worst-case ~218 kbit/h with no cache; ~15 bits per lifetime with caching) is a
+one. The measured figure (a ~216 kbit/h rate-limit bound with no cache; ~15 bits per lifetime with caching) is a
 bound for defenders to design rate limits against, not a recipe: it depends only on the size of the public
 lockfile and the broker's rate limit, both of which the defender sets.
 
@@ -314,3 +314,12 @@ out-of-band key, and we say so rather than overclaiming a cryptographic identity
 Docker path produces the identical result schema. The two share the same broker, probe, and channel code,
 but a divergence in container networking could in principle produce different numbers — the conformance
 report records which mode produced it (`"mode"`).
+
+8. *The report attests what was tested, not runtime honesty.* `verify` proves the transcript hash-chain is
+intact and that the *public* probe-suite and lockfile digests match — so a lab cannot claim it ran weaker
+tests, and none of it needs the lab's network. It does *not* prove the lab's runtime honestly enforced
+SEP-1: a dishonest operator controlling both the broker and the transcript could fabricate a passing
+report. Closing that gap requires the broker to sign each transcript entry with a key bound to an attested
+runtime (remote attestation / a TEE), which we do not build. The verifiability claim in this paper is
+therefore "checkable against public artifacts without lab-network access," not "unforgeable by the lab
+itself."
