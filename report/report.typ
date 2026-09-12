@@ -12,7 +12,7 @@
 
 // ---------------- header (spans both columns) ----------------
 #align(center)[
-  #text(15.5pt, weight: "bold")[An egress allowlist is a compliance instrument, not a containment instrument]
+  #text(15.5pt, weight: "bold")[An egress allowlist is a compliance instrument, \ not a containment instrument]
   #v(2pt)
   #text(11pt)[SEP-1: a Sole-Egress Package-Broker Profile for model-evaluation sandboxes]
   #v(4pt)
