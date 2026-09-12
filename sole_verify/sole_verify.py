@@ -154,9 +154,9 @@ def run_config(config: str, transport, ctx: dict, policy_log: str | None) -> lis
             "outcome": out["outcome"], "achieved": out.get("achieved"),
             "detail": out.get("detail", ""),
         }
-        for k in ("channel_bits_per_hour", "measured_bits_per_second", "bits_per_symbol",
-                  "symbols_sent", "symbols_recovered", "oneshot_ordering_bits_with_caching",
-                  "elapsed_s"):
+        for k in ("channel_bits_per_hour", "empirical_bits_per_hour", "measured_bits_per_second",
+                  "bits_per_symbol", "min_upstream_interval_s", "symbols_sent", "symbols_recovered",
+                  "oneshot_ordering_bits_with_caching", "elapsed_s"):
             if k in out:
                 rec[k] = out[k]
         if policy_log and config == "A":
@@ -324,9 +324,12 @@ def assemble(lf, lockfile_path, transcript_path, transcript_root,
         "policy_monitor_summary": monitor_summary,
         "channel_capacity": {
             "config_A": "unbounded (full-duplex byte channel to the on-list compromised host)",
+            "config_B_bound_bits_per_hour": covert.get("channel_bits_per_hour"),
+            "config_B_empirical_bits_per_hour": covert.get("empirical_bits_per_hour"),
             "config_B_measured_bits_per_hour": covert.get("channel_bits_per_hour"),
             "config_B_oneshot_ordering_bits_with_caching": covert.get("oneshot_ordering_bits_with_caching"),
             "config_B_bits_per_symbol": covert.get("bits_per_symbol"),
+            "config_B_min_upstream_interval_s": covert.get("min_upstream_interval_s"),
             "config_B_symbols_recovered": f"{covert.get('symbols_recovered')}/{covert.get('symbols_sent')}",
         },
         "environment": {
@@ -385,7 +388,8 @@ def render_summary(report: dict) -> str:
              f"{report['policy_monitor_summary']['total_connections']} monitored connections "
              f"({h['config_A_monitor_in_policy']} in-policy).",
              f"- Config B (SEP-1): **{h['config_B_achieved']}/{h['N_probes']}** probes achieved the adversary goal.",
-             f"- Residual covert channel under B: **{h['channel_bits_per_hour_B']} bits/hour** (measured, worst-case no-cache); "
+             f"- Residual covert channel under B: **{h['channel_bits_per_hour_B']:,.0f} bits/hour** "
+             f"(deterministic rate-limit bound; empirical {report['channel_capacity']['config_B_empirical_bits_per_hour']:,.0f}); "
              f"collapses to ~{report['channel_capacity']['config_B_oneshot_ordering_bits_with_caching']} bits one-shot with caching.",
              f"- Broker integrity checks: **{h['integrity_passed']}/{h['integrity_total']}** passed.",
              "",

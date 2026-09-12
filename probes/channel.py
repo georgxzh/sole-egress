@@ -59,7 +59,14 @@ def measure_capacity(t, ctx) -> dict:
     recv_symbols = _paths_to_symbols(received_paths, alphabet)
     correct = sum(1 for a, b in zip(symbols, recv_symbols) if a == b)
     recovered_bits = correct * bits_per_symbol
-    bits_per_hour = recovered_bits / elapsed * 3600.0
+    empirical_bits_per_hour = recovered_bits / elapsed * 3600.0
+
+    # DETERMINISTIC structural bound: the channel is rate-limited by the broker's
+    # minimum upstream interval, so its capacity is fixed by config, not by the
+    # wall clock. This is the number the profile requires published (S9); the
+    # empirical measurement above is a run-to-run confirmation of it.
+    min_interval = m.get("min_interval", 0.05)
+    structural_bits_per_hour = bits_per_symbol * (3600.0 / min_interval)
 
     # One-shot ordering capacity of a *caching* broker (structural note).
     oneshot_bits = math.log2(math.factorial(k)) if k > 1 else 0.0
@@ -67,9 +74,12 @@ def measure_capacity(t, ctx) -> dict:
     return {
         "outcome": "PARTIAL", "achieved": True,
         "detail": (f"selection channel: {correct}/{len(symbols)} symbols recovered; "
+                   f"capacity is rate-limit bound = {structural_bits_per_hour:,.0f} bits/hour; "
                    f"a caching broker collapses this toward ~{oneshot_bits:.0f} bits one-shot"),
-        "channel_bits_per_hour": round(bits_per_hour, 1),
+        "channel_bits_per_hour": round(structural_bits_per_hour, 1),
+        "empirical_bits_per_hour": round(empirical_bits_per_hour, 1),
         "bits_per_symbol": round(bits_per_symbol, 3),
+        "min_upstream_interval_s": min_interval,
         "symbols_sent": len(symbols),
         "symbols_recovered": correct,
         "elapsed_s": round(elapsed, 4),

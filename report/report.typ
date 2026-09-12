@@ -32,8 +32,8 @@
   12-probe suite against two configurations facing one compromised-but-cooperative mock upstream. *Result
   (reproducible, offline, under 5 min):* under the allowlist, *11 of 12* probes cross the boundary while the
   policy monitor reports *13 of 14* connections in-policy and *one* violation; under SEP-1, *11 of 12* are
-  contained, leaving a residual covert channel we measure at *#raw("217,613") bits/hour* (worst case),
-  collapsing to *~15 bits per sandbox lifetime* under a caching broker. Every run ends in a hash-chained,
+  contained, leaving a residual covert channel we bound at *#raw("216,000") bits/hour* (a deterministic
+  rate-limit bound; empirical ~214k confirms), collapsing to *~15 bits per sandbox lifetime* under a caching broker. Every run ends in a hash-chained,
   signed conformance report a third party checks against the public lockfile and probe suite *without any
   access to the lab network* — the property an allowlist audit cannot provide.]
 ]
@@ -173,10 +173,11 @@ one-alert story told beside eleven successful boundary crossings.
 Under Config B, the same eleven are contained. The exception, by design, is `covert_channel`: the sandbox
 still chooses *which* pinned entries to fetch, *in what order*, and *when*, and a compromised upstream
 observing the broker's upstream fetches reads those choices. We transmit a known secret and decode it at
-the receiver: worst-case (no broker cache) we recover *29/29* symbols at 3 bits each for a measured
-*#raw("217,613") bits/hour*; with a *caching* broker — the realistic deployment — an upstream fetch is
-emitted only on first access, collapsing the channel toward *~15 bits per sandbox lifetime* (one-shot
-ordering of $N=8$ symbols). All four broker-integrity checks pass: redirects are not followed (S6),
+the receiver: worst-case (no broker cache) we recover *29/29* symbols at 3 bits each. Because the broker
+rate-limits upstream fetches, the capacity is a *deterministic* bound of *#raw("216,000") bits/hour* (3
+bits/symbol × 72,000 fetches/hour); the wall-clock measurement (~214,000) confirms it run to run. With a
+*caching* broker — the realistic deployment — an upstream fetch is emitted only on first access,
+collapsing the channel toward *~15 bits per sandbox lifetime* (one-shot ordering of $N=8$ symbols). All four broker-integrity checks pass: redirects are not followed (S6),
 oversize responses fail closed (S7), upstream headers are not forwarded (S7), and a poisoned pinned
 artifact is rejected on digest mismatch (S5).
 
@@ -187,8 +188,8 @@ artifact is rejected on digest mismatch (S5).
 *A result against our own thesis.* `covert_channel` succeeds under SEP-1. We report it rather than
 suppress it: a containment control with an unmeasured residual is unevaluable, so S9 makes measuring and
 publishing the residual mandatory. Every number here matches `results/conformance-report.json` exactly;
-the report verifies (`RESULT: VERIFIED`) with transcript root `26c7046f…` and lockfile digest
-`c62ba9e2…`.
+the report verifies (`RESULT: VERIFIED`) — the stable lockfile digest is `c62ba9e2…`, and `verify`
+recomputes the transcript root and matches it against the report.
 
 = Adoption: what a lab changes on Monday
 

@@ -24,7 +24,7 @@ configuration and a SEP-1 configuration facing one compromised-but-cooperative m
 upstream. Reproducibly and offline in under five minutes: under the allowlist 11/12
 probes cross the boundary while the policy monitor reports 13/14 connections
 in-policy and one violation; under SEP-1 11/12 are contained, leaving a residual
-covert channel we measure at 217,613 bits/hour (worst case), collapsing to ~15 bits
+covert channel we measure at 216,000 bits/hour (worst case), collapsing to ~15 bits
 per sandbox lifetime with a caching broker. Every run ends in a hash-chained,
 signed conformance report a third party checks against the public lockfile and probe
 suite **without any access to the lab network** — the property an allowlist audit

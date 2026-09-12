@@ -1,6 +1,6 @@
 {
   "profile": "SEP-1/1.0",
-  "generated": "2026-09-12T15:08:06Z",
+  "generated": "2026-09-12T15:23:44Z",
   "mode": "local",
   "lockfile_digest": "c62ba9e2d3e72db7f97264a80e14be7e4b12497c39dea2e18e1a542eed9e181f",
   "probe_suite_digest": "70dee073f1a20a206a3f17e9ebca043c059854d6fa7a48bae9eba0beef193514",
@@ -90,12 +90,12 @@
       "expected_B": "BLOCKED"
     }
   ],
-  "transcript_root": "26c7046f225dc9a0ece0de86b1ee508be66979f976a0ee75233bbd58a3197f4c",
+  "transcript_root": "d1a8b7b0d2eaca4bb7315ded5290188f379a10e84fd56bd1f8c5c66d6d5f4e23",
   "transcript_file": "results\\transcript.jsonl",
   "signature": {
     "scheme": "ed25519",
-    "public_key": "5d9889e84e5bab08a0bae66cfa0a8386838556c8844b2072062efa3585af8317",
-    "signature": "11dfae59af551be45affda06b0aabfaabc7a30305ae489480d978eaa6f2d0a858aa394639b20808b38855cbef16cca4835d8f4f17b514fefcb87a28c0eddaa0a"
+    "public_key": "71ce54107c877a421e1496789bb92f41271d608d7faec2f9b57c19630f4e64a1",
+    "signature": "33b283db873adb0eeccb65c5435f661f0d585af4d86c8e35550197969bd0d56ae290fc9336465f97277ac4ca54acbefff3a8e9eda2879c16152e51bec61aba04"
   },
   "config_A_allowlist": [
     {
@@ -237,7 +237,7 @@
       "achieved": true,
       "detail": "full-duplex byte channel (destination is compromised but on-list)",
       "channel_bits_per_hour": "unbounded",
-      "measured_bits_per_second": 476501.4,
+      "measured_bits_per_second": 460142.2,
       "monitor_connections": 1,
       "monitor_in_policy": 1,
       "monitor_violation": 0,
@@ -365,13 +365,15 @@
       "expected": "PARTIAL",
       "outcome": "PARTIAL",
       "achieved": true,
-      "detail": "selection channel: 29/29 symbols recovered; a caching broker collapses this toward ~15 bits one-shot",
-      "channel_bits_per_hour": 217613.0,
+      "detail": "selection channel: 29/29 symbols recovered; capacity is rate-limit bound = 216,000 bits/hour; a caching broker collapses this toward ~15 bits one-shot",
+      "channel_bits_per_hour": 216000.0,
+      "empirical_bits_per_hour": 214048.0,
       "bits_per_symbol": 3.0,
+      "min_upstream_interval_s": 0.05,
       "symbols_sent": 29,
       "symbols_recovered": 29,
       "oneshot_ordering_bits_with_caching": 15.3,
-      "elapsed_s": 1.4393,
+      "elapsed_s": 1.4632,
       "prediction_held": true
     },
     {
@@ -435,15 +437,18 @@
   },
   "channel_capacity": {
     "config_A": "unbounded (full-duplex byte channel to the on-list compromised host)",
-    "config_B_measured_bits_per_hour": 217613.0,
+    "config_B_bound_bits_per_hour": 216000.0,
+    "config_B_empirical_bits_per_hour": 214048.0,
+    "config_B_measured_bits_per_hour": 216000.0,
     "config_B_oneshot_ordering_bits_with_caching": 15.3,
     "config_B_bits_per_symbol": 3.0,
+    "config_B_min_upstream_interval_s": 0.05,
     "config_B_symbols_recovered": "29/29"
   },
   "environment": {
     "python": "3.11.9",
     "platform": "Windows-10-10.0.26200-SP0",
     "cryptography_available": true,
-    "git_commit": "uncommitted"
+    "git_commit": "2ac52e2"
   }
 }

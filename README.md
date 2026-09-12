@@ -21,7 +21,7 @@ Facing one compromised-but-cooperative mock upstream, the same 12 probes run aga
 |---|---|---|
 | probes achieving the adversary goal | **11 / 12** | **1 / 12** (the measured covert channel) |
 | policy monitor telemetry | **13/14 in-policy, 1 violation** | n/a (no network to monitor) |
-| residual covert channel | unbounded (full-duplex) | **217,613 bits/hour** worst-case; **~15 bits/lifetime** with caching |
+| residual covert channel | unbounded (full-duplex) | **216,000 bits/hour** (deterministic rate-limit bound; empirical ~214k); **~15 bits/lifetime** with caching |
 
 The finding is the *juxtaposition*: the allowlist monitor reports near-total
 compliance while 11 of 12 attacks cross the boundary. See `report/report.pdf`.
