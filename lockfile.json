@@ -1,0 +1,81 @@
+{
+  "entries": {
+    "cargo:serde:1.0.197:tarball": {
+      "path": "/pkg/cargo/serde/1.0.197/tarball",
+      "sha256": "73acfa64b9f3805de0d8bfb5012c119d10be488cd61273261538dc99f08ce062",
+      "size": 328
+    },
+    "cargo:tokio:1.36.0:tarball": {
+      "path": "/pkg/cargo/tokio/1.36.0/tarball",
+      "sha256": "057d1b4b4af26e0e5b25b9f518369bf5e60ead5dcabb717b5b112855d4c3fe3b",
+      "size": 320
+    },
+    "maven:guava:33.0.0:jar": {
+      "path": "/pkg/maven/guava/33.0.0/jar",
+      "sha256": "f403af7c1c49fc721056c1f791c22afce36976e591dd60b50823bed0a4192eb0",
+      "size": 288
+    },
+    "npm:chalk:5.3.0:tarball": {
+      "path": "/pkg/npm/chalk/5.3.0/tarball",
+      "sha256": "2d42700cb3e90521a56f9d31094e94fb4999637c6822ac22c61b18a9d7b3aa44",
+      "size": 296
+    },
+    "npm:express:4.19.2:tarball": {
+      "path": "/pkg/npm/express/4.19.2/tarball",
+      "sha256": "76f002ef7cf362cd7cd24625f419ab7d818f88bf61901198c6cc7c49e1becef2",
+      "size": 320
+    },
+    "npm:left-pad:1.3.0:tarball": {
+      "path": "/pkg/npm/left-pad/1.3.0/tarball",
+      "sha256": "c77653900e00abd94d048ba57654039eda2b425ed011d6ad8222aedd8834db99",
+      "size": 320
+    },
+    "npm:lodash:4.17.21:tarball": {
+      "path": "/pkg/npm/lodash/4.17.21/tarball",
+      "sha256": "afbfc6aa4a5acc08f45b5bed22c5a7955b39df872dcc7fbce9c1387e30bf6fad",
+      "size": 320
+    },
+    "pypi:certifi:2024.2.2:wheel": {
+      "path": "/pkg/pypi/certifi/2024.2.2/wheel",
+      "sha256": "33c4973cfa34ec34781c3181a699a7b4b8611ddd1f9b1906995c67505b565cd7",
+      "size": 328
+    },
+    "pypi:click:8.1.7:wheel": {
+      "path": "/pkg/pypi/click/8.1.7/wheel",
+      "sha256": "f46521577fd9f825431bcef0997a4b28f645c08303c1cac7eaf2cf5d039b1ab6",
+      "size": 288
+    },
+    "pypi:idna:3.6:wheel": {
+      "path": "/pkg/pypi/idna/3.6/wheel",
+      "sha256": "f05aa737e4125b6b0ca37436d94f511ff230db97c9099292a1bc4a5ced09d69b",
+      "size": 264
+    },
+    "pypi:numpy:1.26.4:wheel": {
+      "path": "/pkg/pypi/numpy/1.26.4/wheel",
+      "sha256": "589823b2fc21ce3659f95202d51240b00ab12225a92f737571f91220d90cf327",
+      "size": 296
+    },
+    "pypi:packaging:24.0:wheel": {
+      "path": "/pkg/pypi/packaging/24.0/wheel",
+      "sha256": "66d5e6627b805ec8b9288d3e0f27510df65a4f951e349ed924d07e27c264d7d8",
+      "size": 312
+    },
+    "pypi:pyyaml:6.0.1:sdist": {
+      "path": "/pkg/pypi/pyyaml/6.0.1/sdist",
+      "sha256": "1119f69bee9a0acbbfc42b32180e58fe9040eee9b472b9c026e8452a0a9f569b",
+      "size": 296
+    },
+    "pypi:requests:2.31.0:wheel": {
+      "path": "/pkg/pypi/requests/2.31.0/wheel",
+      "sha256": "99de7036e7d110de50d9e29ddf7a9e756e5943323bcf3dca7dd9f20aeca32c5b",
+      "size": 320
+    },
+    "pypi:urllib3:2.2.1:wheel": {
+      "path": "/pkg/pypi/urllib3/2.2.1/wheel",
+      "sha256": "4c4375e516ecb0566c40b14c25565ef9a849999b8a030661aad40627c127b00d",
+      "size": 304
+    }
+  },
+  "generated_note": "pre-resolved closure; public",
+  "profile": "SEP-1/1.0"
+}

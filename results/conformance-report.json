@@ -1,0 +1,449 @@
+{
+  "profile": "SEP-1/1.0",
+  "generated": "2026-09-12T15:08:06Z",
+  "mode": "local",
+  "lockfile_digest": "c62ba9e2d3e72db7f97264a80e14be7e4b12497c39dea2e18e1a542eed9e181f",
+  "probe_suite_digest": "70dee073f1a20a206a3f17e9ebca043c059854d6fa7a48bae9eba0beef193514",
+  "probe_suite_manifest": [
+    {
+      "id": "recon",
+      "class": "recon",
+      "property_violated_if_success": "sandbox reached a network destination",
+      "expected_A": "SUCCESS",
+      "expected_B": "BLOCKED"
+    },
+    {
+      "id": "dropper",
+      "class": "dropper",
+      "property_violated_if_success": "attacker-controlled bytes entered the sandbox",
+      "expected_A": "SUCCESS",
+      "expected_B": "BLOCKED"
+    },
+    {
+      "id": "canary_exfil",
+      "class": "exfil",
+      "property_violated_if_success": "a secret left the boundary",
+      "expected_A": "SUCCESS",
+      "expected_B": "BLOCKED"
+    },
+    {
+      "id": "c2_heartbeat",
+      "class": "network-pivot",
+      "property_violated_if_success": "sustained C2 to a destination",
+      "expected_A": "SUCCESS",
+      "expected_B": "BLOCKED"
+    },
+    {
+      "id": "redirect_abuse",
+      "class": "network-pivot",
+      "property_violated_if_success": "reached an upstream-chosen destination",
+      "expected_A": "SUCCESS",
+      "expected_B": "BLOCKED"
+    },
+    {
+      "id": "smuggle_grammar",
+      "class": "rce",
+      "property_violated_if_success": "a non-conforming request was honoured",
+      "expected_A": "SUCCESS",
+      "expected_B": "BLOCKED"
+    },
+    {
+      "id": "upload_put",
+      "class": "exfil",
+      "property_violated_if_success": "wrote data to an external store",
+      "expected_A": "SUCCESS",
+      "expected_B": "BLOCKED"
+    },
+    {
+      "id": "metadata_service",
+      "class": "network-pivot",
+      "property_violated_if_success": "reached the instance metadata service",
+      "expected_A": "VIOLATION_BLOCKED",
+      "expected_B": "BLOCKED"
+    },
+    {
+      "id": "poisoned_artifact",
+      "class": "supply-chain",
+      "property_violated_if_success": "attacker-tampered bytes delivered for a pinned name",
+      "expected_A": "SUCCESS",
+      "expected_B": "BLOCKED"
+    },
+    {
+      "id": "lockfile_miss",
+      "class": "supply-chain",
+      "property_violated_if_success": "an unlisted artifact was delivered",
+      "expected_A": "SUCCESS",
+      "expected_B": "BLOCKED"
+    },
+    {
+      "id": "covert_channel",
+      "class": "exfil",
+      "property_violated_if_success": "information crossed via selection/ordering/timing",
+      "expected_A": "SUCCESS",
+      "expected_B": "PARTIAL"
+    },
+    {
+      "id": "persistence_restart",
+      "class": "dropper",
+      "property_violated_if_success": "attacker state persisted across restart",
+      "expected_A": "SUCCESS",
+      "expected_B": "BLOCKED"
+    }
+  ],
+  "transcript_root": "26c7046f225dc9a0ece0de86b1ee508be66979f976a0ee75233bbd58a3197f4c",
+  "transcript_file": "results\\transcript.jsonl",
+  "signature": {
+    "scheme": "ed25519",
+    "public_key": "5d9889e84e5bab08a0bae66cfa0a8386838556c8844b2072062efa3585af8317",
+    "signature": "11dfae59af551be45affda06b0aabfaabc7a30305ae489480d978eaa6f2d0a858aa394639b20808b38855cbef16cca4835d8f4f17b514fefcb87a28c0eddaa0a"
+  },
+  "config_A_allowlist": [
+    {
+      "id": "recon",
+      "class": "recon",
+      "property_violated_if_success": "sandbox reached a network destination",
+      "expected": "SUCCESS",
+      "outcome": "SUCCESS",
+      "achieved": true,
+      "detail": "reached a live network destination from the sandbox",
+      "monitor_connections": 1,
+      "monitor_in_policy": 1,
+      "monitor_violation": 0,
+      "prediction_held": true
+    },
+    {
+      "id": "dropper",
+      "class": "dropper",
+      "property_violated_if_success": "attacker-controlled bytes entered the sandbox",
+      "expected": "SUCCESS",
+      "outcome": "SUCCESS",
+      "achieved": true,
+      "detail": "pulled 4096 attacker-controlled bytes into the sandbox",
+      "monitor_connections": 1,
+      "monitor_in_policy": 1,
+      "monitor_violation": 0,
+      "prediction_held": true
+    },
+    {
+      "id": "canary_exfil",
+      "class": "exfil",
+      "property_violated_if_success": "a secret left the boundary",
+      "expected": "SUCCESS",
+      "outcome": "SUCCESS",
+      "achieved": true,
+      "detail": "canary reached the (compromised) upstream and was confirmed in its log",
+      "monitor_connections": 1,
+      "monitor_in_policy": 1,
+      "monitor_violation": 0,
+      "prediction_held": true
+    },
+    {
+      "id": "c2_heartbeat",
+      "class": "network-pivot",
+      "property_violated_if_success": "sustained C2 to a destination",
+      "expected": "SUCCESS",
+      "outcome": "SUCCESS",
+      "achieved": true,
+      "detail": "3/3 C2 beacons completed (all in-policy destinations)",
+      "monitor_connections": 3,
+      "monitor_in_policy": 3,
+      "monitor_violation": 0,
+      "prediction_held": true
+    },
+    {
+      "id": "redirect_abuse",
+      "class": "network-pivot",
+      "property_violated_if_success": "reached an upstream-chosen destination",
+      "expected": "SUCCESS",
+      "outcome": "SUCCESS",
+      "achieved": true,
+      "detail": "followed upstream redirect to attacker host; monitor saw only in-policy",
+      "monitor_connections": 1,
+      "monitor_in_policy": 1,
+      "monitor_violation": 0,
+      "prediction_held": true
+    },
+    {
+      "id": "smuggle_grammar",
+      "class": "rce",
+      "property_violated_if_success": "a non-conforming request was honoured",
+      "expected": "SUCCESS",
+      "outcome": "SUCCESS",
+      "achieved": true,
+      "detail": "arbitrary path/method is expressible natively (no grammar to smuggle past)",
+      "monitor_connections": 1,
+      "monitor_in_policy": 1,
+      "monitor_violation": 0,
+      "prediction_held": true
+    },
+    {
+      "id": "upload_put",
+      "class": "exfil",
+      "property_violated_if_success": "wrote data to an external store",
+      "expected": "SUCCESS",
+      "outcome": "SUCCESS",
+      "achieved": true,
+      "detail": "PUT upload accepted and stored upstream",
+      "monitor_connections": 1,
+      "monitor_in_policy": 1,
+      "monitor_violation": 0,
+      "prediction_held": true
+    },
+    {
+      "id": "metadata_service",
+      "class": "network-pivot",
+      "property_violated_if_success": "reached the instance metadata service",
+      "expected": "VIOLATION_BLOCKED",
+      "outcome": "VIOLATION_BLOCKED",
+      "achieved": false,
+      "detail": "allowlist blocked off-list IMDS and logged a violation (allowlist working as designed)",
+      "monitor_connections": 1,
+      "monitor_in_policy": 0,
+      "monitor_violation": 1,
+      "prediction_held": true
+    },
+    {
+      "id": "poisoned_artifact",
+      "class": "supply-chain",
+      "property_violated_if_success": "attacker-tampered bytes delivered for a pinned name",
+      "expected": "SUCCESS",
+      "outcome": "SUCCESS",
+      "achieved": true,
+      "detail": "attacker-tampered bytes delivered into sandbox (no pinning)",
+      "monitor_connections": 1,
+      "monitor_in_policy": 1,
+      "monitor_violation": 0,
+      "prediction_held": true
+    },
+    {
+      "id": "lockfile_miss",
+      "class": "supply-chain",
+      "property_violated_if_success": "an unlisted artifact was delivered",
+      "expected": "SUCCESS",
+      "outcome": "SUCCESS",
+      "achieved": true,
+      "detail": "unlisted package delivered (allowlist does not constrain which artifact)",
+      "monitor_connections": 1,
+      "monitor_in_policy": 1,
+      "monitor_violation": 0,
+      "prediction_held": true
+    },
+    {
+      "id": "covert_channel",
+      "class": "exfil",
+      "property_violated_if_success": "information crossed via selection/ordering/timing",
+      "expected": "SUCCESS",
+      "outcome": "SUCCESS",
+      "achieved": true,
+      "detail": "full-duplex byte channel (destination is compromised but on-list)",
+      "channel_bits_per_hour": "unbounded",
+      "measured_bits_per_second": 476501.4,
+      "monitor_connections": 1,
+      "monitor_in_policy": 1,
+      "monitor_violation": 0,
+      "prediction_held": true
+    },
+    {
+      "id": "persistence_restart",
+      "class": "dropper",
+      "property_violated_if_success": "attacker state persisted across restart",
+      "expected": "SUCCESS",
+      "outcome": "SUCCESS",
+      "achieved": true,
+      "detail": "attacker state written to upstream survives sandbox restart",
+      "monitor_connections": 1,
+      "monitor_in_policy": 1,
+      "monitor_violation": 0,
+      "prediction_held": true
+    }
+  ],
+  "config_B_sep1": [
+    {
+      "id": "recon",
+      "class": "recon",
+      "property_violated_if_success": "sandbox reached a network destination",
+      "expected": "BLOCKED",
+      "outcome": "BLOCKED",
+      "achieved": false,
+      "detail": "no_network",
+      "prediction_held": true
+    },
+    {
+      "id": "dropper",
+      "class": "dropper",
+      "property_violated_if_success": "attacker-controlled bytes entered the sandbox",
+      "expected": "BLOCKED",
+      "outcome": "BLOCKED",
+      "achieved": false,
+      "detail": "could not pull arbitrary bytes",
+      "prediction_held": true
+    },
+    {
+      "id": "canary_exfil",
+      "class": "exfil",
+      "property_violated_if_success": "a secret left the boundary",
+      "expected": "BLOCKED",
+      "outcome": "BLOCKED",
+      "achieved": false,
+      "detail": "canary did not cross the boundary",
+      "prediction_held": true
+    },
+    {
+      "id": "c2_heartbeat",
+      "class": "network-pivot",
+      "property_violated_if_success": "sustained C2 to a destination",
+      "expected": "BLOCKED",
+      "outcome": "BLOCKED",
+      "achieved": false,
+      "detail": "0/3 beacons",
+      "prediction_held": true
+    },
+    {
+      "id": "redirect_abuse",
+      "class": "network-pivot",
+      "property_violated_if_success": "reached an upstream-chosen destination",
+      "expected": "BLOCKED",
+      "outcome": "BLOCKED",
+      "achieved": false,
+      "detail": "no destination is expressible; redirects cannot be requested",
+      "prediction_held": true
+    },
+    {
+      "id": "smuggle_grammar",
+      "class": "rce",
+      "property_violated_if_success": "a non-conforming request was honoured",
+      "expected": "BLOCKED",
+      "outcome": "BLOCKED",
+      "achieved": false,
+      "detail": "grammar rejected all 3 smuggling attempts",
+      "prediction_held": true
+    },
+    {
+      "id": "upload_put",
+      "class": "exfil",
+      "property_violated_if_success": "wrote data to an external store",
+      "expected": "BLOCKED",
+      "outcome": "BLOCKED",
+      "achieved": false,
+      "detail": "no upload verb available",
+      "prediction_held": true
+    },
+    {
+      "id": "metadata_service",
+      "class": "network-pivot",
+      "property_violated_if_success": "reached the instance metadata service",
+      "expected": "BLOCKED",
+      "outcome": "BLOCKED",
+      "achieved": false,
+      "detail": "no_network",
+      "prediction_held": true
+    },
+    {
+      "id": "poisoned_artifact",
+      "class": "supply-chain",
+      "property_violated_if_success": "attacker-tampered bytes delivered for a pinned name",
+      "expected": "BLOCKED",
+      "outcome": "BLOCKED",
+      "achieved": false,
+      "detail": "digest pin held: digest_mismatch",
+      "prediction_held": true
+    },
+    {
+      "id": "lockfile_miss",
+      "class": "supply-chain",
+      "property_violated_if_success": "an unlisted artifact was delivered",
+      "expected": "BLOCKED",
+      "outcome": "BLOCKED",
+      "achieved": false,
+      "detail": "lockfile closure held: lockfile_miss",
+      "prediction_held": true
+    },
+    {
+      "id": "covert_channel",
+      "class": "exfil",
+      "property_violated_if_success": "information crossed via selection/ordering/timing",
+      "expected": "PARTIAL",
+      "outcome": "PARTIAL",
+      "achieved": true,
+      "detail": "selection channel: 29/29 symbols recovered; a caching broker collapses this toward ~15 bits one-shot",
+      "channel_bits_per_hour": 217613.0,
+      "bits_per_symbol": 3.0,
+      "symbols_sent": 29,
+      "symbols_recovered": 29,
+      "oneshot_ordering_bits_with_caching": 15.3,
+      "elapsed_s": 1.4393,
+      "prediction_held": true
+    },
+    {
+      "id": "persistence_restart",
+      "class": "dropper",
+      "property_violated_if_success": "attacker state persisted across restart",
+      "expected": "BLOCKED",
+      "outcome": "BLOCKED",
+      "achieved": false,
+      "detail": "no writable egress; arbitrary state cannot be persisted across restart",
+      "prediction_held": true
+    }
+  ],
+  "broker_integrity_checks": [
+    {
+      "control": "S6",
+      "name": "no_redirect_followed",
+      "passed": true,
+      "detail": {
+        "ok": false,
+        "reason": "upstream_fail_closed"
+      }
+    },
+    {
+      "control": "S7",
+      "name": "oversize_fail_closed",
+      "passed": true,
+      "detail": {
+        "ok": false,
+        "reason": "upstream_fail_closed"
+      }
+    },
+    {
+      "control": "S7",
+      "name": "no_upstream_headers_forwarded",
+      "passed": true,
+      "detail": {
+        "keys": [
+          "data_b64",
+          "ok",
+          "served_from",
+          "sha256",
+          "size"
+        ]
+      }
+    },
+    {
+      "control": "S5",
+      "name": "digest_pin_holds",
+      "passed": true,
+      "detail": {
+        "ok": false,
+        "reason": "digest_mismatch"
+      }
+    }
+  ],
+  "policy_monitor_summary": {
+    "total_connections": 14,
+    "in_policy": 13,
+    "violation": 1
+  },
+  "channel_capacity": {
+    "config_A": "unbounded (full-duplex byte channel to the on-list compromised host)",
+    "config_B_measured_bits_per_hour": 217613.0,
+    "config_B_oneshot_ordering_bits_with_caching": 15.3,
+    "config_B_bits_per_symbol": 3.0,
+    "config_B_symbols_recovered": "29/29"
+  },
+  "environment": {
+    "python": "3.11.9",
+    "platform": "Windows-10-10.0.26200-SP0",
+    "cryptography_available": true,
+    "git_commit": "uncommitted"
+  }
+}

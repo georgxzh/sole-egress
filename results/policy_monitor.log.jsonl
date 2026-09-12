@@ -1,0 +1,14 @@
+{"t": 1789225684.5541782, "dest_host": "127.0.0.1", "dest_port": 8080, "verdict": "in_policy", "method": "GET", "detail": "http://127.0.0.1:8080/health"}
+{"t": 1789225684.5702603, "dest_host": "127.0.0.1", "dest_port": 8080, "verdict": "in_policy", "method": "GET", "detail": "http://127.0.0.1:8080/any?bytes=4096"}
+{"t": 1789225684.620655, "dest_host": "127.0.0.1", "dest_port": 8080, "verdict": "in_policy", "method": "POST", "detail": "http://127.0.0.1:8080/exfil"}
+{"t": 1789225684.6742258, "dest_host": "127.0.0.1", "dest_port": 8080, "verdict": "in_policy", "method": "GET", "detail": "http://127.0.0.1:8080/any?bytes=8"}
+{"t": 1789225684.6991634, "dest_host": "127.0.0.1", "dest_port": 8080, "verdict": "in_policy", "method": "GET", "detail": "http://127.0.0.1:8080/any?bytes=8"}
+{"t": 1789225684.75555, "dest_host": "127.0.0.1", "dest_port": 8080, "verdict": "in_policy", "method": "GET", "detail": "http://127.0.0.1:8080/any?bytes=8"}
+{"t": 1789225684.779256, "dest_host": "127.0.0.1", "dest_port": 8080, "verdict": "in_policy", "method": "GET", "detail": "http://127.0.0.1:8080/any?redirect=http%3A%2F%2F127.0.0.1%3A8082%2Fany%3Fbytes%3D16"}
+{"t": 1789225684.8278177, "dest_host": "127.0.0.1", "dest_port": 8080, "verdict": "in_policy", "method": "GET", "detail": "http://127.0.0.1:8080/any?path=%2e%2e%2fsecret"}
+{"t": 1789225684.8426003, "dest_host": "127.0.0.1", "dest_port": 8080, "verdict": "in_policy", "method": "PUT", "detail": "http://127.0.0.1:8080/exfil"}
+{"t": 1789225684.885392, "dest_host": "169.254.169.254", "dest_port": 80, "verdict": "violation", "method": "GET", "detail": "http://169.254.169.254:80/latest/meta-data/iam/security-credentials/"}
+{"t": 1789225684.8981616, "dest_host": "127.0.0.1", "dest_port": 8080, "verdict": "in_policy", "method": "GET", "detail": "http://127.0.0.1:8080/pkg/pypi/requests/2.31.0/wheel"}
+{"t": 1789225684.9456916, "dest_host": "127.0.0.1", "dest_port": 8080, "verdict": "in_policy", "method": "GET", "detail": "http://127.0.0.1:8080/pkg/maven/junit/4.13.2/jar"}
+{"t": 1789225684.9796672, "dest_host": "127.0.0.1", "dest_port": 8080, "verdict": "in_policy", "method": "POST", "detail": "http://127.0.0.1:8080/exfil"}
+{"t": 1789225685.0344255, "dest_host": "127.0.0.1", "dest_port": 8080, "verdict": "in_policy", "method": "PUT", "detail": "http://127.0.0.1:8080/exfil"}

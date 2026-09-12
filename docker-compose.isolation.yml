@@ -1,0 +1,56 @@
+# Real kernel-enforced isolation demonstration for Config B (S1/S2/S11).
+#
+#   docker compose -f docker-compose.isolation.yml up --build --abort-on-container-exit
+#
+# Topology:
+#   mock_cache  — the compromised-but-cooperative upstream (internal net only)
+#   broker      — SEP-1 broker; reaches mock_cache; serves a unix socket into a
+#                 shared volume; content-pins against the public lockfile
+#   sandbox     — network_mode: none. Its ONLY channel is the broker socket.
+#                 Runs isolation_demo.py: proves raw TCP / DNS / IMDS are
+#                 genuinely unreachable while a pinned fetch succeeds.
+#
+# The sandbox has no network interface at all, so there is nothing to allowlist
+# and nothing to escape to — the containment property is enforced by the kernel,
+# not by a policy that has to be right.
+services:
+  mock_cache:
+    build: .
+    command: ["python", "mock_cache/mock_cache.py"]
+    environment:
+      MOCK_CACHE_PORT: "8080"
+    networks: [upstream]
+
+  broker:
+    build: .
+    command: ["python", "broker/broker.py"]
+    environment:
+      LOCKFILE: "/app/lockfile.json"
+      UPSTREAM_HOST: "mock_cache"
+      UPSTREAM_PORT: "8080"
+      BROKER_SOCKET: "/run/broker/broker.sock"
+      TRANSCRIPT: "/results/transcript.isolation.jsonl"
+    volumes:
+      - broker_sock:/run/broker
+      - ./results:/results
+    networks: [upstream]
+    depends_on: [mock_cache]
+
+  sandbox:
+    build: .
+    command: ["sh", "-c", "sleep 2 && python sandbox/isolation_demo.py"]
+    network_mode: "none"          # <-- kernel-enforced: no interfaces but loopback
+    environment:
+      BROKER_SOCKET: "/run/broker/broker.sock"
+      ISOLATION_OUT: "/results/isolation_verdict.json"
+    volumes:
+      - broker_sock:/run/broker
+      - ./results:/results
+    depends_on: [broker]
+
+networks:
+  upstream:
+    internal: true                # <-- no route to the host or the internet
+
+volumes:
+  broker_sock:

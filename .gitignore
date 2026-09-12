@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+report/*.pdf
+!report/report.pdf
+report/.typst-cache/
+*.sock
+.DS_Store

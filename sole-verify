@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Thin wrapper for the sole-verify CLI.
+here="$(cd "$(dirname "$0")" && pwd)"
+exec python3 "$here/sole_verify/sole_verify.py" "$@"

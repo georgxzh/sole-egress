@@ -1,0 +1,21 @@
+# Offline reproducibility path (DoD #1).
+#
+#   docker compose up --build
+#
+# Runs the full two-config experiment and writes results/ to the host. The
+# runner has NO network at all (network_mode: none) — proving the entire
+# experiment needs zero access outside the container, let alone the lab network.
+# The A-vs-B boundary is enforced in-process by the transport layer (Config B
+# exposes no network primitive) and the broker; the numbers are byte-identical
+# to `sole-verify run --local` on the host.
+#
+# For a REAL kernel-enforced network-namespace demonstration of controls
+# S1/S2/S11 (raw TCP, DNS and IMDS genuinely unreachable while a pinned fetch
+# succeeds over a unix socket), see docker-compose.isolation.yml.
+services:
+  sole_verify:
+    build: .
+    network_mode: "none"
+    volumes:
+      - ./results:/app/results
+    command: ["python", "sole_verify/sole_verify.py", "run", "--local"]
