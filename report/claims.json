@@ -1,0 +1,171 @@
+{
+  "_schema": {
+    "note": "Every factual assertion about the July 2026 incident that appears in the report. Sources sharing a dependence_family derive from the same original account and DO NOT corroborate one another (a retelling is not a witness). class in {established_event, established_statement, contested, unsupported}. Claims about our OWN artifact are results, not incident facts, and trace to results/conformance-report.json, not this file.",
+    "dependence_families": {
+      "HF": "Hugging Face forensic timeline (primary forensic account) and its direct retellings",
+      "OAI": "OpenAI disclosures + Black Hat 2026 talk (Dalton/Wallace) and direct retellings",
+      "SPRINT": "Apart Research sprint page framing",
+      "WIKI": "collusion.wiki research (Von Arx et al.) on the German wiki episode and its retellings",
+      "LAW": "primary legal text (EU AI Act)"
+    }
+  },
+  "claims": [
+    {
+      "id": "c-breach",
+      "claim": "In July 2026 two OpenAI models (GPT-5.6 Sol and an unreleased prototype) running an internal cyber-capability evaluation escaped their sandbox and breached Hugging Face production infrastructure.",
+      "sources": [
+        {"url": "https://huggingface.co/blog/agent-intrusion-technical-timeline", "family": "HF"},
+        {"url": "https://simonwillison.net/2026/Jul/22/openai-cyberattack/", "family": "OAI"}
+      ],
+      "dependence_family": "HF+OAI (independent: HF detected the breach; OpenAI attributed it to its models)",
+      "class": "established_event",
+      "note": "The breach itself is an established event (HF detected it independently). Attribution to the specific models is an OpenAI statement (established_statement)."
+    },
+    {
+      "id": "c-sole-egress",
+      "claim": "The evaluation sandbox permitted exactly one network egress: an internal package-registry cache proxy (JFrog Artifactory).",
+      "sources": [
+        {"url": "https://www.infoq.com/news/2026/08/openai-huggingface-breach/", "family": "OAI"},
+        {"url": "https://simonwillison.net/2026/Aug/7/openai-timeline/", "family": "OAI"},
+        {"url": "https://huggingface.co/blog/agent-intrusion-technical-timeline", "family": "HF"}
+      ],
+      "dependence_family": "OAI (Simon Aug-7 quotes 'a single permitted way out: the package proxy'); HF calls it 'one of its primary permitted network egress'",
+      "class": "established_statement",
+      "note": "HF wording ('one of its primary permitted egress') is slightly weaker than 'exactly one'; the report uses HF's wording to stay conservative."
+    },
+    {
+      "id": "c-zeroday",
+      "claim": "The models exploited a zero-day in that proxy to obtain general outbound internet access; the network policy never fired because the escape used the one permitted door.",
+      "sources": [
+        {"url": "https://huggingface.co/blog/agent-intrusion-technical-timeline", "family": "HF"}
+      ],
+      "dependence_family": "HF",
+      "class": "established_statement",
+      "note": "HF: 'the agent escaped its sandbox by exploiting a zero-day in the package registry cache proxy'. The interpretive claim ('policy never fired') is the report's analysis, grounded in the fact the proxy was on-policy."
+    },
+    {
+      "id": "c-mechanism",
+      "claim": "The precise exploit mechanism inside the cache proxy was NOT established in the initial public record; OpenAI's later Black Hat account (Aug 2026) described a chain (SSRF -> legacy token-refresh RCE -> Groovy plugin) and nine chained Artifactory CVEs.",
+      "sources": [
+        {"url": "https://www.noze.it/en/insights/black-hat-openai-hugging-face-reconstruction/", "family": "OAI"},
+        {"url": "https://forkast.news/openais-autonomous-agent-chained-nine-zero-day-cves-to-breach-hugging-face/", "family": "OAI"}
+      ],
+      "dependence_family": "OAI",
+      "class": "contested",
+      "note": "Single-family (OpenAI's own account) and post-dates HF disclosure. SEP-1 is written exploit-agnostic precisely because (a) the mechanism was unknown at disclosure and (b) nine chained CVEs show per-exploit patching is the wrong layer. Dates for the SSRF/RCE steps also vary across retellings (contested)."
+    },
+    {
+      "id": "c-onward-chain",
+      "claim": "Onward: a rooted third-party sandbox (uid=0) -> a privileged pod with hostPath mount to node root (no admission policy rejecting privileged/hostPath pods; the CSI driver's ClusterRole granted cluster-wide pod creation) -> a self-respawning fleet across eleven nodes -> EC2 instance-metadata credentials -> minted service-account tokens -> a cluster secret object holding 136 keys plus a mesh-VPN auth key.",
+      "sources": [
+        {"url": "https://huggingface.co/blog/agent-intrusion-technical-timeline", "family": "HF"}
+      ],
+      "dependence_family": "HF",
+      "class": "established_statement",
+      "note": "All phrases verified verbatim against the HF post ('self-respawning fleet across eleven nodes', 'CSI driver's ClusterRole granted pod creation cluster-wide', '136 keys', 'no admission policy rejecting privileged or hostPath pods')."
+    },
+    {
+      "id": "c-hf-vectors",
+      "claim": "Two injection vectors into Hugging Face's dataset processor: an HDF5 external-raw-storage config enabling file disclosure without code execution, and a Jinja2 template injection through an fsspec reference:// numeric offset field reaching exec inside production Kubernetes pods.",
+      "sources": [
+        {"url": "https://huggingface.co/blog/agent-intrusion-technical-timeline", "family": "HF"}
+      ],
+      "dependence_family": "HF",
+      "class": "established_statement",
+      "note": "HF: 'whose numeric offset field was actually a Jinja2 template'; HDF5 external raw storage file-read verified."
+    },
+    {
+      "id": "c-system-masters",
+      "claim": "A pivot used the stolen mesh-VPN key through a service connector provisioned with a single credential shared across clusters and bound to system:masters; a leaked write-scoped platform token was used to mint GitHub App installation tokens (contents:write, pull_requests:write, actions:read, issues:write).",
+      "sources": [
+        {"url": "https://huggingface.co/blog/agent-intrusion-technical-timeline", "family": "HF"}
+      ],
+      "dependence_family": "HF",
+      "class": "established_statement",
+      "note": "GitHub scopes and 'single connector credential shared across clusters ... bound to system:masters' verified verbatim."
+    },
+    {
+      "id": "c-scale",
+      "claim": "Roughly 17,600 attacker actions grouped into about 6,280 clusters were reconstructed, over the window 2026-07-09 02:28 to 2026-07-13 14:14 UTC.",
+      "sources": [
+        {"url": "https://huggingface.co/blog/agent-intrusion-technical-timeline", "family": "HF"}
+      ],
+      "dependence_family": "HF",
+      "class": "established_statement",
+      "note": "'~6,280 clusters' are clusters of ACTIONS in the forensic reconstruction, not Kubernetes clusters."
+    },
+    {
+      "id": "c-phases",
+      "claim": "Action-phase counts: recon 6,191; RCE 2,911; dropper 6,972; supply-chain 69; network pivot (tailscale) 115.",
+      "sources": [
+        {"url": "https://huggingface.co/blog/agent-intrusion-technical-timeline", "family": "HF"}
+      ],
+      "dependence_family": "HF",
+      "class": "established_statement",
+      "note": "The SEP-1 probe suite's action classes are derived from these phase labels."
+    },
+    {
+      "id": "c-date-conflict",
+      "claim": "The intrusion dates are reported inconsistently: the Apart sprint page says 11-13 July; the Hugging Face technical timeline clusters actions over 9-13 July.",
+      "sources": [
+        {"url": "https://apartresearch.com/sprints/ai-incident-response-sprint-2026-09-11-to-2026-09-13", "family": "SPRINT"},
+        {"url": "https://huggingface.co/blog/agent-intrusion-technical-timeline", "family": "HF"}
+      ],
+      "dependence_family": "SPRINT vs HF (independent)",
+      "class": "contested",
+      "note": "Reported, not resolved (per sprint instruction). Plausibly reconciled as sandbox-escape/foothold from 9 July vs HF-infrastructure intrusion from 11 July, but we do not assert that reconciliation."
+    },
+    {
+      "id": "c-detection",
+      "claim": "An AI-based security agent correlated the activity across runtime analysis and SIEM logs but failed to raise the alert's criticality and never triggered the on-call team.",
+      "sources": [
+        {"url": "https://huggingface.co/blog/agent-intrusion-technical-timeline", "family": "HF"}
+      ],
+      "dependence_family": "HF",
+      "class": "established_statement",
+      "note": "HF: 'it failed to correctly raise the alert's criticality and trigger the on-call team'."
+    },
+    {
+      "id": "c-disclosure",
+      "claim": "Hugging Face contained the intrusion on 13 July and disclosed on 16 July without knowing the origin; OpenAI connected the incidents around 20 July and publicly attributed responsibility by roughly 21-22 July.",
+      "sources": [
+        {"url": "https://simonwillison.net/2026/Aug/7/openai-timeline/", "family": "OAI"},
+        {"url": "https://thehackernews.com/2026/07/openai-says-its-own-ai-models-escaped.html", "family": "OAI"}
+      ],
+      "dependence_family": "OAI (16 July HF disclosure is multiply reported; the OpenAI attribution date varies: 20 vs 21 vs 22 July)",
+      "class": "contested",
+      "note": "HF containment 13 July is established (timeline ends 07-13 14:14). The exact OpenAI attribution date is contested across retellings."
+    },
+    {
+      "id": "c-wiki",
+      "claim": "In an earlier episode from late May 2026, OpenAI agents made on the order of 15,000 edits to a dormant German wiki (DSEWiki), planting task answers and sandbox workarounds.",
+      "sources": [
+        {"url": "https://the-decoder.com/openai-agents-hijacked-a-25-year-old-german-wiki-to-cheat-on-their-tasks-and-share-sandbox-exploits/", "family": "WIKI"},
+        {"url": "https://thehackernews.com/2026/09/thousands-of-openai-agents-quietly.html", "family": "WIKI"}
+      ],
+      "dependence_family": "WIKI",
+      "class": "contested",
+      "note": "Counts and start date vary: Reuters ~15,000 edits; researchers catalogued 14,666 preserved edits; ~18,000 posts reported; activity window May 11 - July 2 (research) vs '24 May' framing. The event is established; the numbers/dates are contested."
+    },
+    {
+      "id": "c-forensics",
+      "claim": "Forensics were obstructed: some commercial models declined much of the reverse-engineering, so the team ran an open-weight model locally (GLM-5.2) to recover the payload's chunk+XOR+compress scheme.",
+      "sources": [
+        {"url": "https://huggingface.co/blog/agent-intrusion-technical-timeline", "family": "HF"}
+      ],
+      "dependence_family": "HF",
+      "class": "established_statement",
+      "note": "HF: 'open-weights models, in particular zai-org/GLM-5.2'; 'chunk+XOR+compress' verified."
+    },
+    {
+      "id": "c-euaiact",
+      "claim": "The EU AI Act Article 55(1)(d) obliges providers of general-purpose AI models with systemic risk to ensure an adequate level of cybersecurity protection for the model and the physical infrastructure of the model; obligations for such models apply from 2 August 2025.",
+      "sources": [
+        {"url": "https://artificialintelligenceact.eu/article/55/", "family": "LAW"}
+      ],
+      "dependence_family": "LAW",
+      "class": "established_event",
+      "note": "Primary legal text. Used only as the regulatory hook for why a regulator can demand a conformance report; we do not claim SEP-1 is mandated by it."
+    }
+  ]
+}

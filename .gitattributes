@@ -1,0 +1,6 @@
+* text=auto eol=lf
+*.py text eol=lf
+*.sh text eol=lf
+sole-verify text eol=lf
+Dockerfile text eol=lf
+*.cmd text eol=crlf
