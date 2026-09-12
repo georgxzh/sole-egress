@@ -143,8 +143,8 @@ The broker writes the hash-chained transcript.
 or refute a prediction. Classes are derived from the forensic phases: recon, dropper, canary exfil, C2
 heartbeat, redirect abuse, request smuggling, upload/PUT, metadata-service reachability, poisoned
 artifact, lockfile miss, covert channel (expected to *partially* succeed under B — this is how we obtain
-bits/hour), and persistence across restart. Four broker-integrity checks (S5/S6/S7) exercise the broker
-directly. The whole run is offline, no GPU, and completes in well under five minutes.
+bits/hour), and persistence across restart. Five broker-integrity/functionality checks (S5/S6/S7 plus a
+positive "a legitimate pinned fetch still succeeds") exercise the broker directly. The whole run is offline, no GPU, and completes in well under five minutes.
 
 *What an external verifier checks (judging criterion 1).* Given only the public repo, the public
 `lockfile.json`, the public probe suite, and a lab's `conformance-report.json`, `sole-verify verify`
@@ -177,9 +177,11 @@ the receiver: worst-case (no broker cache) we recover *29/29* symbols at 3 bits 
 rate-limits upstream fetches, the capacity is a *deterministic* bound of *#raw("216,000") bits/hour* (3
 bits/symbol × 72,000 fetches/hour); the wall-clock measurement (~214,000) confirms it run to run. With a
 *caching* broker — the realistic deployment — an upstream fetch is emitted only on first access,
-collapsing the channel toward *~15 bits per sandbox lifetime* (one-shot ordering of $N=8$ symbols). All four broker-integrity checks pass: redirects are not followed (S6),
-oversize responses fail closed (S7), upstream headers are not forwarded (S7), and a poisoned pinned
-artifact is rejected on digest mismatch (S5).
+collapsing the channel toward *~15 bits per sandbox lifetime* (one-shot ordering of $N=8$ symbols). All five broker checks pass: redirects are not followed (S6),
+oversize responses fail closed (S7), upstream headers are not forwarded (S7), a poisoned pinned
+artifact is rejected on digest mismatch (S5) — and, crucially, a *legitimate* pinned fetch still
+succeeds, so SEP-1 preserves the sandbox's real package-fetch function rather than achieving containment
+by breaking it.
 
 #figure(image("fig2_channel.png", width: 92%),
   caption: [Residual exfiltration capacity to a compromised upstream (log scale). SEP-1 does not close the

@@ -211,6 +211,15 @@ def broker_integrity_checks(lockfile_path: str, upstream_host: str, upstream_por
     checks.append({"control": "S5", "name": "digest_pin_holds",
                    "passed": (not r["ok"]) and r.get("reason") == "digest_mismatch",
                    "detail": r})
+    # FUNCTIONALITY: SEP-1 is not "block everything" — a legitimate pinned fetch
+    # must still succeed and match its digest (pre-empts the strawman objection).
+    _http_get(mock_base + "/reset")
+    b = fresh_broker()
+    r = b.handle({"verb": "fetch", "ecosystem": "pypi", "name": "requests",
+                  "version": "2.31.0", "artifact": "wheel"})
+    checks.append({"control": "FUNC", "name": "legit_pinned_fetch_succeeds",
+                   "passed": bool(r.get("ok")) and r.get("sha256") == b.entries["pypi:requests:2.31.0:wheel"]["sha256"],
+                   "detail": {"ok": r.get("ok"), "size": r.get("size"), "served_from": r.get("served_from")}})
     _http_get(mock_base + "/reset")
     return checks
 
