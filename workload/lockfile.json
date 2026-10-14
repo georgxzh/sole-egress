@@ -1,0 +1,130 @@
+{
+  "amendments": [
+    {
+      "added": [
+        "pypi:fx-csvparse:2.1.0:wheel",
+        "pypi:fx-stats:1.4.2:wheel",
+        "pypi:fx-table:0.9.1:wheel"
+      ],
+      "closure": false,
+      "lockfile_digest_after": "660a2bdeb0bd77588f781bcaf89e2fc92e408703975d977f0643067ac07b423c",
+      "lockfile_digest_before": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "method": "tofu-lab-resolve-at-amend-time",
+      "reason": "seed: hash-pinned direct runtime requirements only",
+      "ts": "2026-10-14T16:11:03Z"
+    },
+    {
+      "added": [
+        "pypi:fx-buildcore:3.0.1:wheel",
+        "pypi:fx-minitest:1.1.0:wheel",
+        "pypi:fx-iterutil:0.8.0:wheel",
+        "pypi:fx-text:1.0.3:wheel",
+        "pypi:fx-numeric:1.3.0:wheel",
+        "pypi:fx-colwidth:1.0.0:wheel",
+        "pypi:fx-manifest:1.1.4:wheel",
+        "pypi:fx-assertutil:1.0.2:wheel",
+        "pypi:fx-strutil:1.2.0:wheel",
+        "pypi:fx-mathcore:0.5.1:wheel",
+        "pypi:fx-unicodewidth:0.2.6:wheel",
+        "pypi:fx-hashing:2.0.0:wheel",
+        "pypi:fx-diffutil:0.4.0:wheel",
+        "pypi:fx-tables-data:15.1.0:wheel"
+      ],
+      "closure": true,
+      "lockfile_digest_after": "988c5b930038d096bea3f1fbc3384a271e8b9dec0f2bc9944a5c59433ad9a865",
+      "lockfile_digest_before": "660a2bdeb0bd77588f781bcaf89e2fc92e408703975d977f0643067ac07b423c",
+      "method": "tofu-lab-resolve-at-amend-time",
+      "reason": "complete closure from project manifest (all groups)",
+      "ts": "2026-10-14T16:11:04Z"
+    }
+  ],
+  "entries": {
+    "pypi:fx-assertutil:1.0.2:wheel": {
+      "path": "/pkg/pypi/fx-assertutil/1.0.2/wheel",
+      "sha256": "dee402b5b5fbb29c92336889d0f39373c4d0fee3eed58260ed61e1c6efe0dc71",
+      "size": 729
+    },
+    "pypi:fx-buildcore:3.0.1:wheel": {
+      "path": "/pkg/pypi/fx-buildcore/3.0.1/wheel",
+      "sha256": "22fbd8f4e5584aaceabb3c3233283599b39217b21f17ebe4d301391ccf4fe6f6",
+      "size": 834
+    },
+    "pypi:fx-colwidth:1.0.0:wheel": {
+      "path": "/pkg/pypi/fx-colwidth/1.0.0/wheel",
+      "sha256": "c0f1ec67c19e7d00b8990ebcfe07f6405957e4a713115ea0af21f8e3c0b2c5b8",
+      "size": 701
+    },
+    "pypi:fx-csvparse:2.1.0:wheel": {
+      "path": "/pkg/pypi/fx-csvparse/2.1.0/wheel",
+      "sha256": "f94e4c61fb5d079bd91edf420ddbcf9cc9d2e43bb23fe48514c2ec55140640b5",
+      "size": 945
+    },
+    "pypi:fx-diffutil:0.4.0:wheel": {
+      "path": "/pkg/pypi/fx-diffutil/0.4.0/wheel",
+      "sha256": "3ea2eb6c66a48d46f614ba7360f236da7d1e04b643beac4e85bb6ad1ea1ed039",
+      "size": 701
+    },
+    "pypi:fx-hashing:2.0.0:wheel": {
+      "path": "/pkg/pypi/fx-hashing/2.0.0/wheel",
+      "sha256": "2c63528686798d0db0000b411f7e4b153091cc2953dc582860e1620e81d48bff",
+      "size": 588
+    },
+    "pypi:fx-iterutil:0.8.0:wheel": {
+      "path": "/pkg/pypi/fx-iterutil/0.8.0/wheel",
+      "sha256": "270f6fef926f4ea16aeb9bb374e25695b228b6590e13ae3b8ad277cf57781c61",
+      "size": 511
+    },
+    "pypi:fx-manifest:1.1.4:wheel": {
+      "path": "/pkg/pypi/fx-manifest/1.1.4/wheel",
+      "sha256": "74f5babd30cf1261f0ef6f81317cfec10d075e86fe66956c4eb3831ea3d80c2a",
+      "size": 925
+    },
+    "pypi:fx-mathcore:0.5.1:wheel": {
+      "path": "/pkg/pypi/fx-mathcore/0.5.1/wheel",
+      "sha256": "2216c1823a0258107e4526ea0486edfcdc84e890aae82293ff0f778dc3e3342b",
+      "size": 478
+    },
+    "pypi:fx-minitest:1.1.0:wheel": {
+      "path": "/pkg/pypi/fx-minitest/1.1.0/wheel",
+      "sha256": "a5dc9c4b5e12661ce7807589291e86364b7ad423e61cfd77606b4e7aa8ddc58a",
+      "size": 1213
+    },
+    "pypi:fx-numeric:1.3.0:wheel": {
+      "path": "/pkg/pypi/fx-numeric/1.3.0/wheel",
+      "sha256": "1aa2f2db1299964496f968956c206285bcdd6149af9974f3dad3def10daade62",
+      "size": 778
+    },
+    "pypi:fx-stats:1.4.2:wheel": {
+      "path": "/pkg/pypi/fx-stats/1.4.2/wheel",
+      "sha256": "94e5040a1ee9604974d7c81b9b4be26bfa420f6b8a2ff7334e6f958dc1b6df20",
+      "size": 740
+    },
+    "pypi:fx-strutil:1.2.0:wheel": {
+      "path": "/pkg/pypi/fx-strutil/1.2.0/wheel",
+      "sha256": "d31076f5011daa9b2090f905755d6b27c1528757d34aa25ff218a2f4bd56f19d",
+      "size": 762
+    },
+    "pypi:fx-table:0.9.1:wheel": {
+      "path": "/pkg/pypi/fx-table/0.9.1/wheel",
+      "sha256": "95c354075fb77438657a81eca79bdf1d12c40ce65a37a6ce51164e939dd9404d",
+      "size": 884
+    },
+    "pypi:fx-tables-data:15.1.0:wheel": {
+      "path": "/pkg/pypi/fx-tables-data/15.1.0/wheel",
+      "sha256": "6c2012a3902e10defcf98ac1786a8ac9fb735ffc9e208ceee2c22dc7adf22280",
+      "size": 668
+    },
+    "pypi:fx-text:1.0.3:wheel": {
+      "path": "/pkg/pypi/fx-text/1.0.3/wheel",
+      "sha256": "16991581096f85be6409d7689022fefa0dd7f58590ad503713b6d7b1c63abf03",
+      "size": 560
+    },
+    "pypi:fx-unicodewidth:0.2.6:wheel": {
+      "path": "/pkg/pypi/fx-unicodewidth/0.2.6/wheel",
+      "sha256": "5eb5f7ab4c20abbea065072fa9f3e146a072f6188a8bac2c89b6394a88be6919",
+      "size": 656
+    }
+  },
+  "generated_note": "pre-resolved closure; public",
+  "profile": "SEP-1/1.0"
+}

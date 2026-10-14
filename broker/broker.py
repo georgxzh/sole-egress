@@ -47,6 +47,20 @@ class Broker:
         self._last_upstream = 0.0
         self._lock = threading.Lock()
 
+    # -- lockfile lifecycle (amendment between runs is recorded, never silent) --
+    def note_lockfile(self, reason: str = "") -> str:
+        return self.transcript.append("note", {"event": "lockfile_loaded",
+                                               "lockfile_digest": self.lf_digest,
+                                               "entries": len(self.entries),
+                                               "reason": reason})
+
+    def reload_lockfile(self, lockfile_path: str, reason: str = "") -> str:
+        """Swap in an amended lockfile (lab-side, between runs) and record it."""
+        lf = load_lockfile(lockfile_path)
+        with self._lock:
+            self.lf, self.lf_digest, self.entries = lf, lockfile_digest(lf), lf["entries"]
+        return self.note_lockfile(reason)
+
     # -- upstream fetch (S6 no-redirect, S7 shape closure, S8 fail-closed) --
     def _fetch_upstream(self, path: str) -> bytes | None:
         with self._lock:

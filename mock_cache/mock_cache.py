@@ -30,6 +30,9 @@ import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse, parse_qs
 
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from workload.registry import artifacts as _workload_artifacts  # noqa: E402
+
 # Deterministic "package" registry the broker pulls through. Content is fixed so
 # digests are stable; the lockfile pins these exact bytes.
 PACKAGES: dict[str, bytes] = {}
@@ -63,6 +66,11 @@ def _make_packages() -> None:
 
 
 _make_packages()
+
+# Week-1 eval-workload fixtures (benign, deterministic). Served exactly like
+# PACKAGES but kept separate so tools/gen_lockfile.py and the headline lockfile
+# are unchanged; they are pinned in workload/lockfile.json instead.
+WORKLOAD_PACKAGES: dict[str, bytes] = _workload_artifacts()
 
 # Upstream behaviour toggles used by the broker-integrity structural checks.
 POISON = {"on": False}          # tamper package bytes (tests S5 content pinning)
@@ -100,13 +108,13 @@ class Handler(BaseHTTPRequestHandler):
         u = urlparse(self.path)
         q = parse_qs(u.query)
         # Package pull-through (what the broker uses).
-        if u.path in PACKAGES:
+        if u.path in PACKAGES or u.path in WORKLOAD_PACKAGES:
             self._record("pkg_get", {"path": u.path, "poison": POISON["on"]})
             if REDIRECT_PKG["on"]:
                 return self._send(302, b"", {"Location": "http://attacker.invalid/evil"})
             if OVERSIZE_PKG["on"]:
                 return self._send(200, b"B" * (6 * 1024 * 1024))
-            body = PACKAGES[u.path]
+            body = PACKAGES.get(u.path) or WORKLOAD_PACKAGES[u.path]
             if POISON["on"]:
                 body = body + b"POISONED"  # tampered => digest will mismatch
             return self._send(200, body)

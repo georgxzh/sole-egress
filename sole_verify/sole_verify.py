@@ -33,6 +33,7 @@ from sole_egress_common import (  # noqa: E402
 from transport import AllowlistTransport, BrokerTransport  # noqa: E402
 import probes as probes_mod  # noqa: E402
 from broker import Broker, serve  # noqa: E402
+from workload.experiment import run_friction_experiment  # noqa: E402
 
 # Loopback ports for local mode.
 MOCK_PORT = 8080
@@ -40,6 +41,8 @@ ATTACKER_PORT = 8082
 PROXY_PORT = 3128
 BROKER_TCP = 8090
 MEASURE_BROKER_TCP = 8091
+WORKLOAD_BROKER_TCP = 8092
+WORKLOAD_CLOSURE_BROKER_TCP = 8093
 
 # 8-symbol alphabet for the covert channel (3 clean bits/symbol).
 COVERT_ALPHABET = [
@@ -289,6 +292,10 @@ def orchestrate_local(results_dir: str) -> dict:
         # ---- broker integrity structural checks (S5/S6/S7) ----
         integrity = broker_integrity_checks(lockfile_path, "127.0.0.1", MOCK_PORT, mock_base)
 
+        # ---- Week-1: realistic eval workload + lockfile-completeness friction ----
+        workload = run_friction_experiment(results_dir, "127.0.0.1", MOCK_PORT,
+                                           WORKLOAD_BROKER_TCP, WORKLOAD_CLOSURE_BROKER_TCP)
+
         # policy monitor overall compliance summary (Config A)
         pol = _read_lines(policy_log, 0)
         monitor_summary = {
@@ -305,11 +312,11 @@ def orchestrate_local(results_dir: str) -> dict:
                 pass
 
     return assemble(lf, lockfile_path, transcript_path, transcript_root,
-                    resA, resB, integrity, monitor_summary, "local")
+                    resA, resB, integrity, monitor_summary, "local", workload)
 
 
 def assemble(lf, lockfile_path, transcript_path, transcript_root,
-             resA, resB, integrity, monitor_summary, mode) -> dict:
+             resA, resB, integrity, monitor_summary, mode, workload=None) -> dict:
     suite_manifest = probes_mod.suite_manifest()
     try:
         commit = subprocess.check_output(["git", "-C", ROOT, "rev-parse", "--short", "HEAD"],
@@ -341,6 +348,7 @@ def assemble(lf, lockfile_path, transcript_path, transcript_root,
             "config_B_min_upstream_interval_s": covert.get("min_upstream_interval_s"),
             "config_B_symbols_recovered": f"{covert.get('symbols_recovered')}/{covert.get('symbols_sent')}",
         },
+        "workload_eval": workload,
         "environment": {
             "python": platform.python_version(),
             "platform": platform.platform(),
@@ -416,7 +424,32 @@ def render_summary(report: dict) -> str:
               "| control | check | passed |", "|---------|-------|--------|"]
     for c in report["broker_integrity_checks"]:
         lines.append(f"| {c['control']} | {c['name']} | {'✓' if c['passed'] else '✗'} |")
+    lines += render_workload(report.get("workload_eval"))
     return "\n".join(lines) + "\n"
+
+
+def render_workload(w: dict | None) -> list[str]:
+    if not w:
+        return []
+    e, c, f = w["error_driven"], w["closure_amend"], w["final_run"]
+    phases = ", ".join(f"{k} {v}" for k, v in e["misses_by_phase"].items())
+    lines = ["", "## Realistic eval workload behind the broker (lockfile friction)", "",
+             f"- Project `{w['project']}`: closure of **{w['closure_size']}** pinned packages; "
+             f"naive seed lockfile pins **{w['seed_entries']}** (direct runtime deps).",
+             f"- Error-driven amendment: **{e['runs_to_green']} runs to green**, "
+             f"**{e['fail_closed_runs']} fail-closed runs**, **{e['fail_closed_events']} fail-closed events** "
+             f"({phases}); {e['amendments']} amendments; time to fix {e['time_to_fix_s']} s (wall clock).",
+             f"- Closure amendment (`lockfile_amend --closure`): {c['amend_passes']} pass, "
+             f"{c['added']} added, **{c['runs_to_green']} run to green**, {c['fail_closed_events']} fail-closed events.",
+             f"- Final run: build {'ok' if f['build_ok'] else 'FAILED'}, tests {f['tests_passed']} passed / "
+             f"{f['tests_failed']} failed, **{f['egress_attempts_outside_broker']} egress attempts outside the broker**.",
+             f"- Amend safety: tampered upstream -> {w['amend_drift_check']['drift_detected']} drift reports, "
+             f"{w['amend_drift_check']['added']} entries added.",
+             "", "| run | phase failed closed | missing entries |", "|-----|---------------------|-----------------|"]
+    for r in e["runs"]:
+        miss = ", ".join(k.split(":")[1] for k in r["missing"]) or "—"
+        lines.append(f"| {r['run']} | {r['phase_failed'] or 'green'} | {miss} |")
+    return lines
 
 
 def verify(report_path: str) -> int:
@@ -454,8 +487,47 @@ def verify(report_path: str) -> int:
     # 6. signature self-consistent
     check("signature verifies against transcript root",
           verify_signature(report["transcript_root"], report["signature"]))
+    # 7. realistic eval workload (Week-1 follow-up), if present
+    w = report.get("workload_eval")
+    if w:
+        verify_workload(w, base, check)
+    else:
+        print("  [SKIP] no workload_eval section in this report")
     print(f"\nRESULT: {'VERIFIED' if ok else 'FAILED'}")
     return 0 if ok else 1
+
+
+def verify_workload(w: dict, base: str, check) -> None:
+    e = w["error_driven"]
+    tpath = os.path.join(ROOT, e["transcript_file"])
+    if not os.path.exists(tpath):
+        tpath = os.path.join(base, "workload", os.path.basename(e["transcript_file"]))
+    chain_ok, root, n = Transcript.verify_file(tpath)
+    check(f"workload transcript hash-chain intact ({n} entries)", chain_ok)
+    check("workload transcript root matches report", root == e["transcript_root"])
+    misses, loads = 0, []
+    with open(tpath, "r", encoding="utf-8") as fh:
+        for line in fh:
+            if not line.strip():
+                continue
+            p = json.loads(line)["payload"]
+            misses += p.get("verdict") == "lockfile_miss"
+            if p.get("event") == "lockfile_loaded":
+                loads.append(p["lockfile_digest"])
+    check(f"fail-closed events in transcript ({misses}) match report", misses == e["fail_closed_events"])
+    public = lockfile_digest(load_lockfile(os.path.join(ROOT, w["public_lockfile"])))
+    check("workload lockfile digest matches public workload lockfile",
+          public == w["public_lockfile_digest"])
+    check("amended lockfile (last load in transcript) == public workload lockfile",
+          bool(loads) and loads[-1] == e["lockfile_digest_final"] == public)
+    check("closure amendment reaches the same lockfile in one pass",
+          w["closure_amend"]["lockfile_digest_final"] == public and w["closure_amend"]["runs_to_green"] == 1)
+    f = w["final_run"]
+    check("eval task green behind the broker (build ok, all tests pass)",
+          f["ok"] and f["build_ok"] and f["tests_failed"] == 0 and f["tests_passed"] > 0)
+    check("no egress attempted outside the broker during build/test",
+          f["egress_attempts_outside_broker"] == 0)
+    check("lockfile-amend refuses to re-pin a tampered upstream", w["amend_drift_check"]["passed"])
 
 
 # --------------------------------------------------------------------------

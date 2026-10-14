@@ -1,0 +1,36 @@
+{
+  "amendments": [
+    {
+      "added": [
+        "pypi:fx-csvparse:2.1.0:wheel",
+        "pypi:fx-stats:1.4.2:wheel",
+        "pypi:fx-table:0.9.1:wheel"
+      ],
+      "closure": false,
+      "lockfile_digest_after": "660a2bdeb0bd77588f781bcaf89e2fc92e408703975d977f0643067ac07b423c",
+      "lockfile_digest_before": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "method": "tofu-lab-resolve-at-amend-time",
+      "reason": "seed: hash-pinned direct runtime requirements only",
+      "ts": "2026-10-14T16:11:03Z"
+    }
+  ],
+  "entries": {
+    "pypi:fx-csvparse:2.1.0:wheel": {
+      "path": "/pkg/pypi/fx-csvparse/2.1.0/wheel",
+      "sha256": "f94e4c61fb5d079bd91edf420ddbcf9cc9d2e43bb23fe48514c2ec55140640b5",
+      "size": 945
+    },
+    "pypi:fx-stats:1.4.2:wheel": {
+      "path": "/pkg/pypi/fx-stats/1.4.2/wheel",
+      "sha256": "94e5040a1ee9604974d7c81b9b4be26bfa420f6b8a2ff7334e6f958dc1b6df20",
+      "size": 740
+    },
+    "pypi:fx-table:0.9.1:wheel": {
+      "path": "/pkg/pypi/fx-table/0.9.1/wheel",
+      "sha256": "95c354075fb77438657a81eca79bdf1d12c40ce65a37a6ce51164e939dd9404d",
+      "size": 884
+    }
+  },
+  "generated_note": "pre-resolved closure; public",
+  "profile": "SEP-1/1.0"
+}

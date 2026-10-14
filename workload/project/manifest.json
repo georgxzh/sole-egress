@@ -1,0 +1,9 @@
+{
+  "name": "tidyreport",
+  "version": "0.3.0",
+  "requires": ["fx-csvparse==2.1.0", "fx-stats==1.4.2", "fx-table==0.9.1"],
+  "build_requires": ["fx-buildcore==3.0.1"],
+  "test_requires": ["fx-minitest==1.1.0"],
+  "src": "src",
+  "tests": "tests/test_tidyreport.py"
+}
