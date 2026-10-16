@@ -207,7 +207,7 @@ report with the eval. Steps (1) and (2) are configuration, not research.
 
 *Cost.* The broker is ~200 lines of stdlib. The real cost is *lockfile completeness*: a missing
 dependency fails closed, so labs need a good resolve step and a way to amend lockfiles between runs — a
-usability cost, not a security hole. This is why we ship a broker that content-pins rather than a policy
+usability cost, not a security hole, and we measured it (§7). This is why we ship a broker that content-pins rather than a policy
 labs must keep correct: an allowlist is only as good as its last edit, whereas a digest pin is
 self-checking.
 
@@ -218,29 +218,61 @@ regulator something it can actually request and a third party can actually check
 report — *without* access to the lab's network. That is the difference between an obligation and an
 auditable obligation.
 
-= What would falsify this, and one month of follow-up
+= What would falsify this, and the one-month follow-up
 
 *Falsifiers.* (a) A probe that crosses the boundary under Config B other than the measured channel would
 refute the by-construction claim — none did, but $N=12$ is not coverage. (b) A realistic eval whose
 dependency graph cannot be pre-resolved would show SEP-1 is impractical where it matters. (c) A covert
 channel materially larger than measured — e.g. via broker error timing or cache-state oracles — would
 mean S9's bound is loose. (d) Evidence that container isolation routinely fails in real labs would move
-the binding constraint from egress to the kernel, outside SEP-1's scope.
+the binding constraint from egress to the kernel, outside SEP-1's scope. The follow-up below tests (b)
+on one realistic task; (c) remains open.
 
-*One-month follow-up.* Week 1: port a real evaluation harness (e.g. a CyberGym-style task) behind the
-broker and report lockfile-completeness friction. Week 2: red-team the residual channel (timing, error
-codes, cache oracles) and tighten the S9 bound. Week 3: a multi-tenant broker with per-sandbox lockfiles
-and quota-based channel rate limits. Week 4: a reference GitHub Action that emits and verifies the
-conformance report in CI, so adoption is a merged workflow file.
+*One-month follow-up (October 2026).* Every result below is in `results/conformance-report.json` and
+is re-derived by `verify`, which grew from 7 to 31 checks.
+
+*Week 1 — a realistic eval task behind the broker: done.* A benign fixture project (CSV → statistics →
+text table) whose *17-package* closure spans runtime, build-backend and test-extra dependencies is
+resolved, built and tested with the broker as its only dependency source; build and test run in child
+interpreters whose audit hook refuses any other egress (*0* attempts; 6/6 tests pass). From a naive
+lockfile pinning only the 3 direct dependencies, fixing errors as they surface took *10 runs to green*
+and *14 fail-closed events* (resolve 8, build 3, test 3): a transitive dependency is only discovered once
+its parent is fetched, and build and test dependencies only once the preceding phase passes. One
+closure amendment from the project manifest reaches the same lockfile in *one pass and one green run*.
+Lockfile friction is therefore a lock-step tooling problem, not a property of SEP-1 — falsifier (b) did
+not fire on this task. The amend tool (`lockfile_amend`) runs lab-side between runs, reads misses from the
+broker's transcript rather than the sandbox's claim, records every lockfile load there, and never
+re-pins: with the upstream tampering, it reported 5 drifted pins and added nothing.
+
+*Week 2 — residual-channel review: not done.* The planned review of the broker's residual channel and a
+before/after S9 bound were not carried out. Falsifier (c) is still open, and S9's figure remains the
+rate-limit bound of §5.
+
+*Week 3 — multi-tenant broker: done.* One process runs an independent broker per tenant (own lockfile,
+transcript and cache); tenant identity is the socket, never a request field. All seven isolation and
+quota checks pass: a tenant cannot be named in-band, cannot fetch another tenant's pins, sees no other
+tenant's cache state, and its transcript holds only its own requests; a sliding-window quota caps
+upstream fetch attempts (quota 4 → 4 fetches, 2 `quota_exceeded`), cache hits stay free, and exhaustion is
+per tenant — the Week-1 task runs green as a second tenant with quota $= |L| = 18$. The per-tenant channel
+figure is a config-derived upper bound, $q (log_2 |L| + log_2(W slash Delta))$ bits per window: *80* and
+*366 bits/hour* for the two tenants, which `verify` recomputes from the transcripts and public config.
+
+*Week 4 — conformance in CI: done.* A composite GitHub Action and `.github/workflows/sep1.yml` run the
+harness, emit the report, verify it, self-test that a tampered report is rejected, upload the evidence,
+and fail the job unless it verified; it is green on GitHub's Linux runner. Building it exposed a defect
+in our own verifier: `verify` trusted the report's self-declared `prediction_held` flag, so a report
+claiming a Config B probe had *succeeded* still verified — instrumentation reporting success, inside the
+tool meant to catch it. `verify` now recomputes outcomes against the public suite and cross-checks
+broker-evidenced outcomes against the transcript.
 
 #v(3pt)
 #line(length: 100%, stroke: 0.4pt + luma(180))
 #text(8.6pt)[*Artifact.* Public repo `sole-egress`: profile, threat model, harness, 12-probe suite,
 committed run, and `sole-verify`. Clean clone → `docker compose up` → conformance report in under 5 min,
 offline. Reproduce numbers on the host with `python sole_verify/sole_verify.py run --local` and check with
-`… verify results/conformance-report.json`.]
+`… verify results/conformance-report.json`; in CI, `uses: georgxzh/sole-egress@<sha>`.]
 
-#colbreak()
+#v(6pt)
 #text(9.3pt)[*References.* Sources are grouped by dependence family (see `report/claims.json`); items in
 one family do not corroborate one another.]
 
@@ -285,45 +317,52 @@ lockfile and the broker's rate limit, both of which the defender sets.
 == Limitations (stated by name)
 
 1. *Container isolation is assumed, not proven.* A laptop container is not a real lab sandbox; a host
-kernel or hypervisor escape defeats SEP-1, which is a different control layer (kernel/VM isolation) and
-out of scope. The `docker-compose.isolation.yml` demo shows kernel-enforced `network_mode: none` for the
-sandbox, but that is Docker on a laptop, not a hardened production sandbox.
+   kernel or hypervisor escape defeats SEP-1, which is a different control layer (kernel/VM isolation) and
+   out of scope. The `docker-compose.isolation.yml` demo shows kernel-enforced `network_mode: none` for the
+   sandbox, but that is Docker on a laptop, not a hardened production sandbox.
 
 2. *We model one hop of a five-hop intrusion.* SEP-1 addresses the egress — the first hop, where the
-policy failed. The downstream Kubernetes escalation, credential theft, and lateral movement are real and
-serious, and SEP-1 does nothing about them; they need admission control, IMDS lockdown, and credential
-scoping, which we cite but do not build.
+   policy failed. The downstream Kubernetes escalation, credential theft, and lateral movement are real and
+   serious, and SEP-1 does nothing about them; they need admission control, IMDS lockdown, and credential
+   scoping, which we cite but do not build.
 
 3. *We cannot show SEP-1 would have stopped this escape*, only that it closes the class. The exploit
-mechanism inside the proxy was not established when the incident was disclosed, and SEP-1 is deliberately
-exploit-agnostic. "Closes the class by construction" is an argument about the reachable request space, not
-a claim about the specific 0-day.
+   mechanism inside the proxy was not established when the incident was disclosed, and SEP-1 is deliberately
+   exploit-agnostic. "Closes the class by construction" is an argument about the reachable request space, not
+   a claim about the specific 0-day.
 
 4. *The mock upstream's cooperativeness is an argued assumption, not a measured one.* We assert that a
-compromised cache proxy behaves as a cooperative relay; we do not measure a real compromised Artifactory.
-If a real compromise were *less* capable than our yes-machine, Config A would look better than we show —
-so our assumption is conservative for the allowlist, which is the honest direction.
+   compromised cache proxy behaves as a cooperative relay; we do not measure a real compromised Artifactory.
+   If a real compromise were *less* capable than our yes-machine, Config A would look better than we show —
+   so our assumption is conservative for the allowlist, which is the honest direction.
 
 5. *$N=12$ probes is not coverage.* Passing 12 pre-registered probes bounds nothing about the 13th. The
-suite is a falsification instrument, not a proof of containment; the by-construction argument (§3), not the
-probe count, carries the containment claim.
+   suite is a falsification instrument, not a proof of containment; the by-construction argument (§3), not the
+   probe count, carries the containment claim.
 
 6. *The identity signature is optional.* The primary integrity artifact is the hash-chained transcript,
-which any third party recomputes from the public repo. An Ed25519 signature is added when the optional
-`cryptography` dependency is present; otherwise the report ships with a self-consistent HMAC tag and a note.
-Identity attestation (which lab produced the report) therefore needs either the optional dependency or an
-out-of-band key, and we say so rather than overclaiming a cryptographic identity guarantee.
+   which any third party recomputes from the public repo. An Ed25519 signature is added when the optional
+   `cryptography` dependency is present; otherwise the report ships with a self-consistent HMAC tag and a note.
+   Identity attestation (which lab produced the report) therefore needs either the optional dependency or an
+   out-of-band key, and we say so rather than overclaiming a cryptographic identity guarantee.
 
 7. *Local vs. Docker parity.* The committed numbers come from the in-process local orchestration; the
-Docker path produces the identical result schema. The two share the same broker, probe, and channel code,
-but a divergence in container networking could in principle produce different numbers — the conformance
-report records which mode produced it (`"mode"`).
+   Docker path produces the identical result schema. The two share the same broker, probe, and channel code,
+   but a divergence in container networking could in principle produce different numbers — the conformance
+   report records which mode produced it (`"mode"`). The follow-up ran local mode on Windows and on GitHub's
+   Linux runner with identical results; it did not add a container run.
 
 8. *The report attests what was tested, not runtime honesty.* `verify` proves the transcript hash-chain is
-intact and that the *public* probe-suite and lockfile digests match — so a lab cannot claim it ran weaker
-tests, and none of it needs the lab's network. It does *not* prove the lab's runtime honestly enforced
-SEP-1: a dishonest operator controlling both the broker and the transcript could fabricate a passing
-report. Closing that gap requires the broker to sign each transcript entry with a key bound to an attested
-runtime (remote attestation / a TEE), which we do not build. The verifiability claim in this paper is
-therefore "checkable against public artifacts without lab-network access," not "unforgeable by the lab
-itself."
+   intact and that the *public* probe-suite and lockfile digests match — so a lab cannot claim it ran weaker
+   tests, and none of it needs the lab's network. It does *not* prove the lab's runtime honestly enforced
+   SEP-1: a dishonest operator controlling both the broker and the transcript could fabricate a passing
+   report. Closing that gap requires the broker to sign each transcript entry with a key bound to an attested
+   runtime (remote attestation / a TEE), which we do not build. The verifiability claim in this paper is
+   therefore "checkable against public artifacts without lab-network access," not "unforgeable by the lab
+   itself."
+
+9. *The residual-channel review was not done.* S9's bound covers the selection, ordering and timing
+   channel through the broker's upstream rate limiter. The follow-up planned a review of whether other broker
+   behaviour widens that channel; it was not carried out, so the bound should be read as covering only the
+   channel it names (falsifier (c)). The per-tenant figures of §7 are config-derived upper bounds of the
+   same kind, not measurements.

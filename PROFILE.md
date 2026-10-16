@@ -65,9 +65,67 @@ the lab's network**:
 1. the transcript hash-chain is intact and its root matches the report;
 2. the lockfile digest in the report matches the public lockfile;
 3. the probe-suite digest matches the public probe suite (same tests were run);
-4. every per-probe verdict is consistent with the transcript;
-5. the published channel capacity is present and within the profile bound.
+4. every per-probe outcome equals its pre-declared expectation, *recomputed*
+   against the public probe suite (never taken from the report's own
+   `prediction_held` flag), and the Config B outcomes that leave broker
+   evidence (grammar rejections, digest mismatch, lockfile miss) are backed by
+   verdicts in the transcript;
+5. the published channel capacity is present and within the profile bound;
+6. if the report carries an eval workload (`workload_eval`): its transcript
+   chain, its fail-closed count, and that the amended lockfile equals the
+   public workload lockfile;
+7. if the report carries tenants (`multi_tenant`): per tenant, the transcript
+   chain, the tenant binding and quota against the public tenant config, that
+   every served entry is in that tenant's own lockfile, that upstream fetches
+   per window stay within quota, and that the per-tenant bound recomputes.
 
 None of these require seeing the lab's hosts, IPs, or traffic. That is the
 property an allowlist audit cannot provide: an allowlist log is a list of the
 lab's own destinations, which *is* lab-network information.
+
+## Operating SEP-1: lockfile amendment (non-normative guidance for S4/S8)
+
+A missing dependency fails closed. That is a usability cost, and the follow-up
+measured it on a realistic task (`workload/`, see the report): from a lockfile
+pinning only direct dependencies, fixing errors as they surface took 10 runs
+and 14 fail-closed events; one closure amendment from the project manifest took
+one pass and one green run. Labs SHOULD therefore lock the full closure of
+every dependency group (runtime, build, test) at image-build time. When a lockfile must
+change, it SHOULD be amended as follows (`tools/lockfile_amend.py`):
+
+- **Lab-side, between runs, never by the broker during a run.** An
+  auto-amending broker is live resolution, which S4 exists to forbid.
+- **From the broker's record, not the sandbox's claim.** Misses are read from
+  `lockfile_miss` verdicts in the transcript; sandbox-reported needs are
+  untrusted input and every amendment is shown as a diff for review.
+- **Append-only.** An existing pin is never re-pinned; if upstream bytes for a
+  pinned key changed, that is reported as drift and its subtree is not
+  followed. New pins are trust-on-first-use unless cross-checked against an
+  independent digest list (`--expect`).
+- **Recorded.** Every lockfile the broker loads is a `lockfile_loaded`
+  transcript note carrying its digest, so the amendment history is part of the
+  attestable record (S10).
+
+## Multi-tenant brokers (applies when one broker serves several sandboxes)
+
+| ID | Lvl | Requirement | Verification |
+|----|-----|-------------|--------------|
+| **M1 Socket-bound identity** | MUST | A tenant's identity is the channel it is connected on (e.g. its own bind-mounted unix socket), never a request field. The S3 grammar is unchanged; a request naming a tenant is a `grammar_violation`. | check T1 |
+| **M2 Per-tenant closure** | MUST | Each tenant is served only from its own lockfile; another tenant's pins are a `lockfile_miss` even when cached. | check T2; verify: served ⊆ own lockfile |
+| **M3 No shared broker state** | MUST | Caches, rate limiters and transcripts are per tenant; one tenant's activity leaves no state another can observe, and each tenant's transcript holds only its own requests. | checks T3, T4 |
+| **M4 Per-tenant quota** | MUST (Measured) | At most `quota` upstream fetch attempts per sliding window per tenant, checked before contacting upstream; cache hits are free; excess fails closed with `quota_exceeded`. The per-tenant channel figure published under S9 is the config-derived bound `quota × (log2 \|L\| + log2(window / min_interval))` bits per window. Recommended quota: \|L\| per window, enough for a full cold resolve with caching. | checks Q1–Q3; verify recomputes from transcript + public config |
+
+## Continuous conformance (CI)
+
+`action.yml` (composite GitHub Action) and `.github/workflows/sep1.yml` make
+conformance a merge gate: run the harness, emit `conformance-report.json`, run
+`verify`, self-test that a tampered report is rejected, upload the evidence, and
+fail the job unless the report verified. Adopting labs SHOULD pin the action by
+commit SHA.
+
+## Open item
+
+Control S9's bound covers the residual selection/ordering/timing channel through
+the broker's upstream rate limiter. A review of whether other broker behaviours
+widen that channel was planned for the follow-up and **was not carried out**.
+Until it is, treat the S9 bound as covering only the channel it names.

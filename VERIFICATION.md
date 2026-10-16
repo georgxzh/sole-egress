@@ -106,6 +106,45 @@ date conflict (11–13 vs 9–13 July), SSRF/token-refresh/nine CVEs, EU AI Act 
 and 2 Aug 2025 — each maps to a `claims.json` row. The KV-cache analogy is rhetorical,
 not an incident claim.
 
+## One-month follow-up (October 2026) — what was verified, what was found
+
+Every follow-up result is in `results/conformance-report.json` and is re-derived by
+`sole-verify verify` (31 checks, up from 7). Each week was tested with one sequential
+`run --local` followed by `verify` (never overlapping runs, per H1), then committed.
+
+| Week | Status | How it was checked |
+|------|--------|--------------------|
+| 1 — realistic eval workload + lockfile friction + `lockfile_amend` | **done** | 9 verify checks: workload transcript chain and root; fail-closed count recomputed from the transcript (14); amended lockfile = public `workload/lockfile.json`; closure amendment reaches it in one pass; task green (6/6 tests); 0 egress attempts outside the broker; amend refuses to re-pin a tampered upstream (5 drift, 0 added). The egress guard was separately shown to count a real bypass attempt, so its 0 is not vacuous. |
+| 2 — residual-channel review of the broker | **not done** | Not carried out in this follow-up. No before/after S9 bound was produced; falsifier (c) in the report remains open and the S9 headline is unchanged. |
+| 3 — multi-tenant broker, per-tenant lockfiles/transcripts/quotas | **done** | 7 isolation/quota checks (T1–T4, Q1–Q3) + 14 verify checks re-derived from the tenant transcripts and public `tenants/` config. Negative tests: a copied tenant transcript with a served key swapped to another tenant's entry fails (chain + membership), and a report understating upstream usage fails (per-window count ≠ report). |
+| 4 — reference GitHub Action + CI gate | **done** | Simulated locally step by step, then run on GitHub's Linux runner: report verified (31/31), tampered-report self-test rejected, evidence artifact uploaded. |
+
+### F1 (found and fixed) — `verify` trusted the report's own success flag
+While testing the Week-4 gate, a report edited to claim a Config B probe `SUCCESS`
+still returned `RESULT: VERIFIED`: check 4 read the report's self-declared
+`prediction_held` instead of recomputing it. This is the paper's own failure shape
+(instrumentation reporting success is not evidence) in our verifier. **Fix:** `verify`
+now recomputes `outcome == expected`, takes `expected` from the public probe suite,
+requires the full probe set, and cross-checks the broker-evidenced Config B outcomes
+(`smuggle_grammar`, `poisoned_artifact`, `lockfile_miss`) against transcript verdicts.
+The altered report now fails and fails the CI job. Outcomes without broker-side
+evidence remain self-reported (S3 below, unchanged). DECISIONS D18.
+
+### F2 (found and fixed) — first real CI run failed
+The harness itself passed on the Linux runner (31/31); the CI wiring did not.
+(1) GitHub runs composite bash steps with `-e -o pipefail`, so the self-test aborted
+as soon as `verify` *correctly* rejected the tampered report, before its exit code was
+read; the verify step had the same latent bug for failing reports. (2) For `uses: ./`
+the action path is `<workspace>/./`, which `upload-artifact` rejects. The local
+simulator had passed both because it ran plain `bash -c` with a clean path; it now
+uses the runner's shell flags and path shape, reproduces the original failure, and
+passes the fix. The rerun on GitHub is green. DECISIONS D19.
+
+### Still open from H1
+The recommended `.runlock` guard / dropping `SO_REUSEADDR` was not implemented; the
+local-mode harness remains a single-run tool. The CI workflow serialises runs per ref
+(`concurrency`) so CI cannot trigger the H1 overlap.
+
 ## Docker validation status
 Docker Desktop's daemon did not become ready during the build window (WSL2 cold start),
 so `docker compose up` was not executed here. The offline runner
@@ -115,10 +154,15 @@ committed numbers come from the host local-mode orchestration, which shares all 
 probe, and channel code with the Docker path. This is disclosed in the report appendix
 (limitation 7) and `SUBMISSION.md` DoD item 1.
 
-## Three weakest points a judge will still attack
+## Weakest points a judge will still attack
 1. **Runtime honesty (S3).** The report proves what was tested, not that the sandbox
    truly had no other egress at run time, without remote attestation.
 2. **One hop of five.** SEP-1 fixes only the egress; the downstream Kubernetes
    escalation is untouched (stated, but a judge may want more than a citation).
 3. **Docker path unproven here.** DoD item 1's `docker compose up` was not executed in
-   this session; only local-mode parity is demonstrated.
+   this session; only local-mode parity is demonstrated (now on Windows and on GitHub's
+   Linux runner, but still not in containers). The multi-tenant broker has a socket-per-
+   tenant entry point but no compose file and no container run.
+4. **Residual-channel review not done.** The planned Week-2 review of the broker's
+   residual channel was not carried out, so S9's bound has not been tested against
+   anything beyond the rate-limited selection/ordering/timing channel it names.
