@@ -46,6 +46,9 @@ class Broker:
         self.nocache = nocache  # S9 worst-case measurement: emit an upstream fetch every time
         self._last_upstream = 0.0
         self._lock = threading.Lock()
+        # Optional admission check before any upstream fetch (multi-tenant quota,
+        # broker/multitenant.py). None = no quota (single-tenant default).
+        self.upstream_gate = None
 
     # -- lockfile lifecycle (amendment between runs is recorded, never silent) --
     def note_lockfile(self, reason: str = "") -> str:
@@ -109,6 +112,9 @@ class Broker:
         served_from = "cache"
         if data is None:
             served_from = "upstream"
+            if self.upstream_gate is not None and not self.upstream_gate():
+                self.transcript.append("verdict", {"key": key, "verdict": "quota_exceeded"})
+                return {"ok": False, "reason": "quota_exceeded"}
             data = self._fetch_upstream(entry["path"])
             if data is None:
                 self.transcript.append("verdict", {"key": key, "verdict": "upstream_fail_closed"})

@@ -1,0 +1,14 @@
+[
+  {
+    "id": "alpha",
+    "lockfile": "tenants/alpha.lockfile.json",
+    "quota": 4,
+    "window_s": 3600
+  },
+  {
+    "id": "beta",
+    "lockfile": "tenants/beta.lockfile.json",
+    "quota": 18,
+    "window_s": 3600
+  }
+]

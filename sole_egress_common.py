@@ -12,6 +12,7 @@ import hashlib
 import hmac
 import json
 import re
+import threading
 import time
 from dataclasses import dataclass, field, asdict
 from typing import Any
@@ -135,8 +136,13 @@ class Transcript:
         self.path = path
         self.entries: list[TranscriptEntry] = []
         self.root = GENESIS
+        self._lock = threading.Lock()
 
     def append(self, kind: str, payload: dict, ts: float | None = None) -> str:
+        with self._lock:
+            return self._append(kind, payload, ts)
+
+    def _append(self, kind: str, payload: dict, ts: float | None) -> str:
         e = TranscriptEntry(
             seq=len(self.entries),
             ts=ts if ts is not None else time.time(),

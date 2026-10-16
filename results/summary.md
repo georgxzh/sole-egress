@@ -1,14 +1,14 @@
 # SEP-1 conformance summary
 
-- profile: `SEP-1/1.0`  mode: `local`  generated: 2026-10-14T16:12:23Z
+- profile: `SEP-1/1.0`  mode: `local`  generated: 2026-10-16T04:40:58Z
 - lockfile_digest: `c62ba9e2d3e72db7…`
 - probe_suite_digest: `70dee073f1a20a20…`
-- transcript_root: `151ec372f191c24e…`  (ed25519)
+- transcript_root: `23159ba5f398f52a…`  (ed25519)
 
 ## Headline
 - Config A (allowlist): **11/12** probes achieved the adversary goal, with **1 policy violations** logged out of 14 monitored connections (13 in-policy).
 - Config B (SEP-1): **1/12** probes achieved the adversary goal.
-- Residual covert channel under B: **216,000 bits/hour** (deterministic rate-limit bound; empirical 214,370); collapses to ~15.3 bits one-shot with caching.
+- Residual covert channel under B: **216,000 bits/hour** (deterministic rate-limit bound; empirical 209,991); collapses to ~15.3 bits one-shot with caching.
 - Broker integrity checks: **5/5** passed.
 
 ## Per-probe: compliance telemetry vs probe outcome
@@ -41,7 +41,7 @@
 ## Realistic eval workload behind the broker (lockfile friction)
 
 - Project `tidyreport 0.3.0`: closure of **17** pinned packages; naive seed lockfile pins **3** (direct runtime deps).
-- Error-driven amendment: **10 runs to green**, **9 fail-closed runs**, **14 fail-closed events** (resolve 8, build 3, test 3); 9 amendments; time to fix 6.29 s (wall clock).
+- Error-driven amendment: **10 runs to green**, **9 fail-closed runs**, **14 fail-closed events** (resolve 8, build 3, test 3); 9 amendments; time to fix 8.05 s (wall clock).
 - Closure amendment (`lockfile_amend --closure`): 1 pass, 14 added, **1 run to green**, 0 fail-closed events.
 - Final run: build ok, tests 6 passed / 0 failed, **0 egress attempts outside the broker**.
 - Amend safety: tampered upstream -> 5 drift reports, 0 entries added.
@@ -58,3 +58,20 @@
 | 8 | test | fx-assertutil |
 | 9 | test | fx-diffutil |
 | 10 | green | — |
+
+## Multi-tenant broker: isolation and per-tenant quotas
+
+| tenant | entries | quota / window | upstream attempts | quota_exceeded | per-tenant bound (bits/hour) |
+|--------|---------|----------------|-------------------|----------------|------------------------------|
+| alpha | 15 | 4 / 3600 s | 4 | 2 | 80.2 |
+| beta | 18 | 18 / 3600 s | 18 | 0 | 365.5 |
+
+| check | name | passed |
+|-------|------|--------|
+| T1 | tenant_not_claimable_in_band | ✓ |
+| T2 | cross_tenant_entry_refused | ✓ |
+| T3 | no_cross_tenant_cache_state | ✓ |
+| Q1 | quota_bounds_upstream_fetches | ✓ |
+| Q2 | cache_hits_free_after_quota | ✓ |
+| Q3 | quota_isolated_between_tenants | ✓ |
+| T4 | per_tenant_transcripts_disjoint | ✓ |

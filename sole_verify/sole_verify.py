@@ -34,6 +34,8 @@ from transport import AllowlistTransport, BrokerTransport  # noqa: E402
 import probes as probes_mod  # noqa: E402
 from broker import Broker, serve  # noqa: E402
 from workload.experiment import run_friction_experiment  # noqa: E402
+from tenancy import max_in_window, run_tenancy_checks, _scan as scan_tenant_transcript  # noqa: E402
+from multitenant import MIN_UPSTREAM_INTERVAL  # noqa: E402
 
 # Loopback ports for local mode.
 MOCK_PORT = 8080
@@ -43,6 +45,7 @@ BROKER_TCP = 8090
 MEASURE_BROKER_TCP = 8091
 WORKLOAD_BROKER_TCP = 8092
 WORKLOAD_CLOSURE_BROKER_TCP = 8093
+TENANT_PORTS = {"alpha": 8094, "beta": 8095}
 
 # 8-symbol alphabet for the covert channel (3 clean bits/symbol).
 COVERT_ALPHABET = [
@@ -296,6 +299,9 @@ def orchestrate_local(results_dir: str) -> dict:
         workload = run_friction_experiment(results_dir, "127.0.0.1", MOCK_PORT,
                                            WORKLOAD_BROKER_TCP, WORKLOAD_CLOSURE_BROKER_TCP)
 
+        # ---- Week-3: multi-tenant broker isolation + per-tenant quotas ----
+        tenancy = run_tenancy_checks(results_dir, "127.0.0.1", MOCK_PORT, TENANT_PORTS)
+
         # policy monitor overall compliance summary (Config A)
         pol = _read_lines(policy_log, 0)
         monitor_summary = {
@@ -312,11 +318,11 @@ def orchestrate_local(results_dir: str) -> dict:
                 pass
 
     return assemble(lf, lockfile_path, transcript_path, transcript_root,
-                    resA, resB, integrity, monitor_summary, "local", workload)
+                    resA, resB, integrity, monitor_summary, "local", workload, tenancy)
 
 
 def assemble(lf, lockfile_path, transcript_path, transcript_root,
-             resA, resB, integrity, monitor_summary, mode, workload=None) -> dict:
+             resA, resB, integrity, monitor_summary, mode, workload=None, tenancy=None) -> dict:
     suite_manifest = probes_mod.suite_manifest()
     try:
         commit = subprocess.check_output(["git", "-C", ROOT, "rev-parse", "--short", "HEAD"],
@@ -349,6 +355,7 @@ def assemble(lf, lockfile_path, transcript_path, transcript_root,
             "config_B_symbols_recovered": f"{covert.get('symbols_recovered')}/{covert.get('symbols_sent')}",
         },
         "workload_eval": workload,
+        "multi_tenant": tenancy,
         "environment": {
             "python": platform.python_version(),
             "platform": platform.platform(),
@@ -425,6 +432,7 @@ def render_summary(report: dict) -> str:
     for c in report["broker_integrity_checks"]:
         lines.append(f"| {c['control']} | {c['name']} | {'✓' if c['passed'] else '✗'} |")
     lines += render_workload(report.get("workload_eval"))
+    lines += render_tenancy(report.get("multi_tenant"))
     return "\n".join(lines) + "\n"
 
 
@@ -449,6 +457,22 @@ def render_workload(w: dict | None) -> list[str]:
     for r in e["runs"]:
         miss = ", ".join(k.split(":")[1] for k in r["missing"]) or "—"
         lines.append(f"| {r['run']} | {r['phase_failed'] or 'green'} | {miss} |")
+    return lines
+
+
+def render_tenancy(m: dict | None) -> list[str]:
+    if not m:
+        return []
+    lines = ["", "## Multi-tenant broker: isolation and per-tenant quotas", "",
+             "| tenant | entries | quota / window | upstream attempts | quota_exceeded | per-tenant bound (bits/hour) |",
+             "|--------|---------|----------------|-------------------|----------------|------------------------------|"]
+    for t in m["tenants"]:
+        cb = t["channel_bound"]
+        lines.append(f"| {t['id']} | {cb['lockfile_entries']} | {t['quota']} / {t['window_s']:g} s | "
+                     f"{t['upstream_attempts']} | {t['quota_exceeded']} | {cb['bits_per_hour_bound']:,} |")
+    lines += ["", "| check | name | passed |", "|-------|------|--------|"]
+    for c in m["checks"]:
+        lines.append(f"| {c['id']} | {c['name']} | {'✓' if c['passed'] else '✗'} |")
     return lines
 
 
@@ -493,6 +517,12 @@ def verify(report_path: str) -> int:
         verify_workload(w, base, check)
     else:
         print("  [SKIP] no workload_eval section in this report")
+    # 8. multi-tenant broker (Week-3 follow-up), if present
+    m = report.get("multi_tenant")
+    if m:
+        verify_tenancy(m, check)
+    else:
+        print("  [SKIP] no multi_tenant section in this report")
     print(f"\nRESULT: {'VERIFIED' if ok else 'FAILED'}")
     return 0 if ok else 1
 
@@ -528,6 +558,38 @@ def verify_workload(w: dict, base: str, check) -> None:
     check("no egress attempted outside the broker during build/test",
           f["egress_attempts_outside_broker"] == 0)
     check("lockfile-amend refuses to re-pin a tampered upstream", w["amend_drift_check"]["passed"])
+
+
+def verify_tenancy(m: dict, check) -> None:
+    import math
+    with open(os.path.join(ROOT, m["config"]), "r", encoding="utf-8") as fh:
+        cfg = {t["id"]: t for t in json.load(fh)}
+    check("tenant set matches public tenant config", sorted(cfg) == sorted(t["id"] for t in m["tenants"]))
+    for t in m["tenants"]:
+        tid, c = t["id"], cfg.get(t["id"], {})
+        tpath = os.path.join(ROOT, t["transcript_file"])
+        chain_ok, root, n = Transcript.verify_file(tpath)
+        check(f"[{tid}] transcript hash-chain intact ({n} entries), root matches",
+              chain_ok and root == t["transcript_root"])
+        lf = load_lockfile(os.path.join(ROOT, c.get("lockfile", t["lockfile"])))
+        scan = scan_tenant_transcript(tpath)
+        bound = [x for x in scan["notes"] if x.get("event") == "tenant_bound"]
+        loads = [x["lockfile_digest"] for x in scan["notes"] if x.get("event") == "lockfile_loaded"]
+        check(f"[{tid}] transcript bound to this tenant with the public quota",
+              len(bound) == 1 and bound[0]["tenant"] == tid and bound[0]["quota"] == c.get("quota")
+              and bound[0]["window_s"] == c.get("window_s"))
+        check(f"[{tid}] lockfile in transcript == public tenant lockfile",
+              loads == [lockfile_digest(lf)] == [t["lockfile_digest"]])
+        check(f"[{tid}] every served entry is in this tenant's own lockfile",
+              all(k in lf["entries"] for k in scan["served"]))
+        peak = max_in_window(scan["upstream_ts"], c.get("window_s", 0))
+        check(f"[{tid}] upstream fetches per window ({peak}) within quota ({c.get('quota')})",
+              peak <= c.get("quota", -1) and peak == t["upstream_attempts"])
+        n_e = max(len(lf["entries"]), 1)
+        per = math.log2(n_e) + math.log2(max(c.get("window_s", 0) / MIN_UPSTREAM_INTERVAL, 1.0))
+        check(f"[{tid}] per-tenant channel bound recomputes from public config",
+              abs(t["channel_bound"]["bits_per_window_bound"] - round(c.get("quota", 0) * per, 1)) < 0.11)
+    check("all isolation and quota checks passed", all(x["passed"] for x in m["checks"]))
 
 
 # --------------------------------------------------------------------------
