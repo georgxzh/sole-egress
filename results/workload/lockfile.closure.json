@@ -35,7 +35,7 @@
       "lockfile_digest_before": "660a2bdeb0bd77588f781bcaf89e2fc92e408703975d977f0643067ac07b423c",
       "method": "tofu-lab-resolve-at-amend-time",
       "reason": "closure from project manifest (all groups)",
-      "ts": "2026-10-16T04:40:53Z"
+      "ts": "2026-10-16T04:44:28Z"
     }
   ],
   "entries": {

@@ -501,10 +501,28 @@ def verify(report_path: str) -> int:
     # 3. probe-suite digest matches the public probe suite
     check("probe-suite digest matches public probe suite",
           digest_json(probes_mod.suite_manifest()) == report["probe_suite_digest"])
-    # 4. per-probe verdicts internally consistent with predictions
-    held = all(r["prediction_held"] for r in report["config_A_allowlist"]) and \
-        all(r["prediction_held"] for r in report["config_B_sep1"])
-    check("every probe outcome matches its pre-declared expectation", held)
+    # 4. per-probe verdicts: recomputed, never taken from the report's own flag
+    suite = {p["id"]: p for p in probes_mod.suite_manifest()}
+    held = True
+    for cfg_key, exp_key in (("config_A_allowlist", "expected_A"), ("config_B_sep1", "expected_B")):
+        recs = report[cfg_key]
+        held = held and sorted(r["id"] for r in recs) == sorted(suite)
+        for r in recs:
+            want = suite.get(r["id"], {}).get(exp_key)
+            held = held and r["expected"] == want and r["outcome"] == want and r["prediction_held"] is True
+    check("every probe outcome matches its pre-declared expectation (recomputed vs public suite)", held)
+    # 4b. Config B outcomes that leave broker evidence agree with the transcript
+    verdicts = []
+    with open(tpath, "r", encoding="utf-8") as fh:
+        for line in fh:
+            if line.strip():
+                verdicts.append(json.loads(line)["payload"].get("verdict"))
+    bmap = {r["id"]: r["outcome"] for r in report["config_B_sep1"]}
+    evidence = {"smuggle_grammar": verdicts.count("grammar_violation") >= 3,
+                "poisoned_artifact": "digest_mismatch" in verdicts,
+                "lockfile_miss": "lockfile_miss" in verdicts}
+    check("Config B blocked outcomes are backed by broker verdicts in the transcript",
+          all(bmap.get(pid) == "BLOCKED" and ok for pid, ok in evidence.items()))
     # 5. channel capacity present & bounded
     cap = report["channel_capacity"]["config_B_measured_bits_per_hour"]
     check("residual channel capacity is present and finite", isinstance(cap, (int, float)))

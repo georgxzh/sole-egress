@@ -25,7 +25,7 @@
       "lockfile_digest_before": "660a2bdeb0bd77588f781bcaf89e2fc92e408703975d977f0643067ac07b423c",
       "method": "tofu-lab-resolve-at-amend-time",
       "reason": "run 1: resolve phase failed closed",
-      "ts": "2026-10-16T04:40:45Z"
+      "ts": "2026-10-16T04:44:20Z"
     },
     {
       "added": [
@@ -38,7 +38,7 @@
       "lockfile_digest_before": "fb4627320374287a37c6d2c5fc78b07163e2f10a6277fc7770c86ce0fe4701a0",
       "method": "tofu-lab-resolve-at-amend-time",
       "reason": "run 2: resolve phase failed closed",
-      "ts": "2026-10-16T04:40:45Z"
+      "ts": "2026-10-16T04:44:21Z"
     },
     {
       "added": [
@@ -49,7 +49,7 @@
       "lockfile_digest_before": "c4e612ea09939a583165742ee9b6b9c1eae3ba8c065682dab6c8a07eb545440d",
       "method": "tofu-lab-resolve-at-amend-time",
       "reason": "run 3: resolve phase failed closed",
-      "ts": "2026-10-16T04:40:46Z"
+      "ts": "2026-10-16T04:44:21Z"
     },
     {
       "added": [
@@ -60,7 +60,7 @@
       "lockfile_digest_before": "de1961f4c0372b6af538268f0b276a552757bea2adca71b4bfc79e96a188fafb",
       "method": "tofu-lab-resolve-at-amend-time",
       "reason": "run 4: build phase failed closed",
-      "ts": "2026-10-16T04:40:46Z"
+      "ts": "2026-10-16T04:44:22Z"
     },
     {
       "added": [
@@ -71,7 +71,7 @@
       "lockfile_digest_before": "8830a85cbe595ef22eb5324d9ec85d364e6e7ae34d3e751b9d592dbdd122276d",
       "method": "tofu-lab-resolve-at-amend-time",
       "reason": "run 5: build phase failed closed",
-      "ts": "2026-10-16T04:40:47Z"
+      "ts": "2026-10-16T04:44:22Z"
     },
     {
       "added": [
@@ -82,7 +82,7 @@
       "lockfile_digest_before": "bc14ba9ab0b46db559721da1310df3f4197e8285d7f76dbda5dbe04c92251259",
       "method": "tofu-lab-resolve-at-amend-time",
       "reason": "run 6: build phase failed closed",
-      "ts": "2026-10-16T04:40:48Z"
+      "ts": "2026-10-16T04:44:23Z"
     },
     {
       "added": [
@@ -93,7 +93,7 @@
       "lockfile_digest_before": "e45c9ecbd86459157dee70d9f1221e83264fe31d90b89eb102f85204ee64a74a",
       "method": "tofu-lab-resolve-at-amend-time",
       "reason": "run 7: test phase failed closed",
-      "ts": "2026-10-16T04:40:49Z"
+      "ts": "2026-10-16T04:44:24Z"
     },
     {
       "added": [
@@ -104,7 +104,7 @@
       "lockfile_digest_before": "57d02ecaf5637c2392ccaaef5f05b4b9b889ddff4c2909ba92de5f8d48793869",
       "method": "tofu-lab-resolve-at-amend-time",
       "reason": "run 8: test phase failed closed",
-      "ts": "2026-10-16T04:40:50Z"
+      "ts": "2026-10-16T04:44:25Z"
     },
     {
       "added": [
@@ -115,7 +115,7 @@
       "lockfile_digest_before": "eee59e655391cb09598e803f1dc3385334ea749a6ed435a2554ed33c1eddbed6",
       "method": "tofu-lab-resolve-at-amend-time",
       "reason": "run 9: test phase failed closed",
-      "ts": "2026-10-16T04:40:51Z"
+      "ts": "2026-10-16T04:44:26Z"
     }
   ],
   "entries": {

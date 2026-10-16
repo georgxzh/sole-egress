@@ -1,0 +1,40 @@
+# Reference CI gate for SEP-1 (Week-4 follow-up).
+#
+# Runs the harness offline, emits results/conformance-report.json, runs
+# `sole-verify verify`, self-tests that a tampered report is rejected, publishes
+# the summary + evidence, and fails the workflow if verification fails.
+#
+# Adopting it elsewhere is one step:
+#   - uses: georgxzh/sole-egress@<commit-sha>
+#     with: { mode: run-and-verify }
+name: sep1-conformance
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  # run --local uses fixed ports and one results/ dir: never overlap runs of a ref
+  group: sep1-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  conformance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - id: sep1
+        uses: ./
+        with:
+          python-version: "3.11"
+          mode: run-and-verify
+          self-test: "true"
+      - name: Report outcome
+        if: always()
+        run: echo "verified=${{ steps.sep1.outputs.verified }} report=${{ steps.sep1.outputs.report-path }}"

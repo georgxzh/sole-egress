@@ -1,0 +1,145 @@
+name: SEP-1 conformance
+description: >-
+  Run the SEP-1 sole-egress harness, emit conformance-report.json, run
+  `sole-verify verify` on it, and fail the job if verification fails.
+author: Zhixuan Xu
+branding:
+  icon: shield
+  color: blue
+
+inputs:
+  python-version:
+    description: Python used to run the harness (stdlib only).
+    default: "3.11"
+  mode:
+    description: >-
+      `run-and-verify` runs the harness then verifies the report it produced;
+      `verify-only` verifies an existing report given by `report`.
+    default: run-and-verify
+  report:
+    description: Report to verify in `verify-only` mode (relative to the workspace).
+    default: ""
+  self-test:
+    description: >-
+      Also prove the gate is live: a tampered copy of the report MUST fail
+      verification, otherwise this action fails.
+    default: "true"
+  upload-artifact:
+    description: Upload the report, summary and transcripts as a workflow artifact.
+    default: "true"
+  artifact-name:
+    description: Name of the uploaded artifact.
+    default: sep1-conformance
+
+outputs:
+  verified:
+    description: "`true` iff `sole-verify verify` returned RESULT: VERIFIED."
+    value: ${{ steps.verify.outputs.verified }}
+  report-path:
+    description: Path of the verified conformance report.
+    value: ${{ steps.locate.outputs.report }}
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-python@v5
+      with:
+        python-version: ${{ inputs.python-version }}
+
+    - id: locate
+      shell: bash
+      env:
+        SEP1_HOME: ${{ github.action_path }}
+        MODE: ${{ inputs.mode }}
+        REPORT: ${{ inputs.report }}
+      run: |
+        set -euo pipefail
+        case "$MODE" in
+          run-and-verify) report="$SEP1_HOME/results/conformance-report.json" ;;
+          verify-only)
+            [ -n "$REPORT" ] || { echo "::error::verify-only needs the 'report' input"; exit 1; }
+            report="$(cd "$(dirname "$REPORT")" && pwd)/$(basename "$REPORT")" ;;
+          *) echo "::error::unknown mode '$MODE'"; exit 1 ;;
+        esac
+        echo "report=$report" >> "$GITHUB_OUTPUT"
+        echo "evidence=$(dirname "$report")" >> "$GITHUB_OUTPUT"
+
+    - name: Run the SEP-1 harness (offline, both configs)
+      if: inputs.mode == 'run-and-verify'
+      shell: bash
+      env:
+        SEP1_HOME: ${{ github.action_path }}
+      run: |
+        set -euo pipefail
+        python "$SEP1_HOME/sole_verify/sole_verify.py" run --local
+
+    - id: verify
+      name: Verify the conformance report
+      shell: bash
+      env:
+        SEP1_HOME: ${{ github.action_path }}
+        REPORT: ${{ steps.locate.outputs.report }}
+      run: |
+        set -uo pipefail
+        python "$SEP1_HOME/sole_verify/sole_verify.py" verify "$REPORT" | tee "$RUNNER_TEMP/sep1-verify.log"
+        code=${PIPESTATUS[0]}
+        if [ "$code" -eq 0 ] && grep -q "RESULT: VERIFIED" "$RUNNER_TEMP/sep1-verify.log"; then
+          echo "verified=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "verified=false" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Self-test — a tampered report must fail verification
+      if: inputs.self-test == 'true'
+      shell: bash
+      env:
+        SEP1_HOME: ${{ github.action_path }}
+        REPORT: ${{ steps.locate.outputs.report }}
+      run: |
+        set -uo pipefail
+        tampered="$(dirname "$REPORT")/.tampered-conformance-report.json"
+        python - "$REPORT" "$tampered" <<'PY'
+        import json, sys
+        r = json.load(open(sys.argv[1], encoding="utf-8"))
+        r["transcript_root"] = "0" * 64   # claim a transcript that was never produced
+        json.dump(r, open(sys.argv[2], "w", encoding="utf-8"))
+        PY
+        python "$SEP1_HOME/sole_verify/sole_verify.py" verify "$tampered" > "$RUNNER_TEMP/sep1-selftest.log"
+        code=$?
+        rm -f "$tampered"
+        if [ "$code" -eq 0 ]; then
+          echo "::error::self-test: verify ACCEPTED a tampered report; the gate is not live"
+          exit 1
+        fi
+        echo "self-test ok: tampered report rejected (exit $code)"
+
+    - name: Job summary
+      if: always()
+      shell: bash
+      env:
+        REPORT: ${{ steps.locate.outputs.report }}
+      run: |
+        summary="$(dirname "$REPORT")/summary.md"
+        { [ -f "$summary" ] && cat "$summary"
+          echo; echo '## sole-verify verify'; echo; echo '```'
+          cat "$RUNNER_TEMP/sep1-verify.log" 2>/dev/null || echo "(verify did not run)"
+          echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+
+    - name: Upload conformance evidence
+      if: always() && inputs.upload-artifact == 'true'
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ inputs.artifact-name }}
+        path: ${{ steps.locate.outputs.evidence }}
+        if-no-files-found: warn
+
+    - name: Gate — fail the job unless the report verified
+      shell: bash
+      env:
+        VERIFIED: ${{ steps.verify.outputs.verified }}
+      run: |
+        if [ "$VERIFIED" != "true" ]; then
+          echo "::error::SEP-1 conformance report did NOT verify"
+          exit 1
+        fi
+        echo "SEP-1 conformance report verified"
