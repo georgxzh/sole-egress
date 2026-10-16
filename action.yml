@@ -42,7 +42,7 @@ outputs:
 runs:
   using: composite
   steps:
-    - uses: actions/setup-python@v5
+    - uses: actions/setup-python@v7
       with:
         python-version: ${{ inputs.python-version }}
 
@@ -54,11 +54,15 @@ runs:
         REPORT: ${{ inputs.report }}
       run: |
         set -euo pipefail
+        # Canonicalise: for `uses: ./` github.action_path is "<workspace>/./",
+        # which actions/upload-artifact rejects.
+        home="$(cd "$SEP1_HOME" && pwd -P)"
+        echo "home=$home" >> "$GITHUB_OUTPUT"
         case "$MODE" in
-          run-and-verify) report="$SEP1_HOME/results/conformance-report.json" ;;
+          run-and-verify) report="$home/results/conformance-report.json" ;;
           verify-only)
             [ -n "$REPORT" ] || { echo "::error::verify-only needs the 'report' input"; exit 1; }
-            report="$(cd "$(dirname "$REPORT")" && pwd)/$(basename "$REPORT")" ;;
+            report="$(cd "$(dirname "$REPORT")" && pwd -P)/$(basename "$REPORT")" ;;
           *) echo "::error::unknown mode '$MODE'"; exit 1 ;;
         esac
         echo "report=$report" >> "$GITHUB_OUTPUT"
@@ -68,7 +72,7 @@ runs:
       if: inputs.mode == 'run-and-verify'
       shell: bash
       env:
-        SEP1_HOME: ${{ github.action_path }}
+        SEP1_HOME: ${{ steps.locate.outputs.home }}
       run: |
         set -euo pipefail
         python "$SEP1_HOME/sole_verify/sole_verify.py" run --local
@@ -77,12 +81,13 @@ runs:
       name: Verify the conformance report
       shell: bash
       env:
-        SEP1_HOME: ${{ github.action_path }}
+        SEP1_HOME: ${{ steps.locate.outputs.home }}
         REPORT: ${{ steps.locate.outputs.report }}
       run: |
-        set -uo pipefail
+        set +e   # GitHub runs `bash -e -o pipefail`; capture the exit code instead of aborting
         python "$SEP1_HOME/sole_verify/sole_verify.py" verify "$REPORT" | tee "$RUNNER_TEMP/sep1-verify.log"
         code=${PIPESTATUS[0]}
+        set -e
         if [ "$code" -eq 0 ] && grep -q "RESULT: VERIFIED" "$RUNNER_TEMP/sep1-verify.log"; then
           echo "verified=true" >> "$GITHUB_OUTPUT"
         else
@@ -93,10 +98,10 @@ runs:
       if: inputs.self-test == 'true'
       shell: bash
       env:
-        SEP1_HOME: ${{ github.action_path }}
+        SEP1_HOME: ${{ steps.locate.outputs.home }}
         REPORT: ${{ steps.locate.outputs.report }}
       run: |
-        set -uo pipefail
+        set -euo pipefail
         tampered="$(dirname "$REPORT")/.tampered-conformance-report.json"
         python - "$REPORT" "$tampered" <<'PY'
         import json, sys
@@ -104,8 +109,10 @@ runs:
         r["transcript_root"] = "0" * 64   # claim a transcript that was never produced
         json.dump(r, open(sys.argv[2], "w", encoding="utf-8"))
         PY
+        set +e   # verify is EXPECTED to fail here; capture its exit code
         python "$SEP1_HOME/sole_verify/sole_verify.py" verify "$tampered" > "$RUNNER_TEMP/sep1-selftest.log"
         code=$?
+        set -e
         rm -f "$tampered"
         if [ "$code" -eq 0 ]; then
           echo "::error::self-test: verify ACCEPTED a tampered report; the gate is not live"
@@ -127,13 +134,14 @@ runs:
 
     - name: Upload conformance evidence
       if: always() && inputs.upload-artifact == 'true'
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: ${{ inputs.artifact-name }}
         path: ${{ steps.locate.outputs.evidence }}
         if-no-files-found: warn
 
     - name: Gate — fail the job unless the report verified
+      if: always()
       shell: bash
       env:
         VERIFIED: ${{ steps.verify.outputs.verified }}

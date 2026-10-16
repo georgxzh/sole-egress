@@ -1,14 +1,14 @@
 # SEP-1 conformance summary
 
-- profile: `SEP-1/1.0`  mode: `local`  generated: 2026-10-16T04:44:33Z
+- profile: `SEP-1/1.0`  mode: `local`  generated: 2026-10-16T15:34:01Z
 - lockfile_digest: `c62ba9e2d3e72db7…`
 - probe_suite_digest: `70dee073f1a20a20…`
-- transcript_root: `a7514d41e649467e…`  (ed25519)
+- transcript_root: `6cf806b409f97e6a…`  (ed25519)
 
 ## Headline
 - Config A (allowlist): **11/12** probes achieved the adversary goal, with **1 policy violations** logged out of 14 monitored connections (13 in-policy).
 - Config B (SEP-1): **1/12** probes achieved the adversary goal.
-- Residual covert channel under B: **216,000 bits/hour** (deterministic rate-limit bound; empirical 212,136); collapses to ~15.3 bits one-shot with caching.
+- Residual covert channel under B: **216,000 bits/hour** (deterministic rate-limit bound; empirical 215,859); collapses to ~15.3 bits one-shot with caching.
 - Broker integrity checks: **5/5** passed.
 
 ## Per-probe: compliance telemetry vs probe outcome
@@ -41,7 +41,7 @@
 ## Realistic eval workload behind the broker (lockfile friction)
 
 - Project `tidyreport 0.3.0`: closure of **17** pinned packages; naive seed lockfile pins **3** (direct runtime deps).
-- Error-driven amendment: **10 runs to green**, **9 fail-closed runs**, **14 fail-closed events** (resolve 8, build 3, test 3); 9 amendments; time to fix 7.88 s (wall clock).
+- Error-driven amendment: **10 runs to green**, **9 fail-closed runs**, **14 fail-closed events** (resolve 8, build 3, test 3); 9 amendments; time to fix 6.66 s (wall clock).
 - Closure amendment (`lockfile_amend --closure`): 1 pass, 14 added, **1 run to green**, 0 fail-closed events.
 - Final run: build ok, tests 6 passed / 0 failed, **0 egress attempts outside the broker**.
 - Amend safety: tampered upstream -> 5 drift reports, 0 entries added.
