@@ -1,7 +1,5 @@
 # sole-egress — SEP-1 Sole-Egress Package-Broker Profile
 
-# sole-egress — SEP-1 Sole-Egress Package-Broker Profile
-
 <p align="left">
   <img src="assets/apart-logo.png" alt="Apart Research" height="100">
 </p>
