@@ -4,9 +4,7 @@
   <img src="assets/apart-logo.png" alt="Apart Research" height="100">
 </p>
 
-🔗 **Project page:** [SEP-1 on Apart Research](https://apartresearch.com/sprints/projects/sep1-a-soleegress-packagebroker-profile-for-modelevaluation-sandboxes-7kif)
-
-**Track 1 (Containment) artifact for the Apart Research AI Incident Response Sprint.**
+🔗 **Project page:** [SEP-1: A Sole-Egress Package-Broker Profile for Model-Evaluation Sandboxes](https://apartresearch.com/sprints/projects/sep1-a-soleegress-packagebroker-profile-for-modelevaluation-sandboxes-7kif)
 
 **Track 1 (Containment) artifact for the Apart Research AI Incident Response Sprint.**
 
