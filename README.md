@@ -6,8 +6,6 @@
 
 **Track 1 (Containment) artifact for the Apart Research AI Incident Response Sprint.**
 
-**Track 1 (Containment) artifact for the Apart Research AI Incident Response Sprint.**
-
 > An egress **allowlist is a compliance instrument, not a containment instrument.**
 > It answers *"did the sandbox connect to anything off-list?"* — and in the July 2026
 > OpenAI→Hugging Face incident the honest answer was *no*, throughout, while the
