@@ -1,10 +1,12 @@
 # sole-egress — SEP-1 Sole-Egress Package-Broker Profile
 
 <p align="left">
-  <a href="https://apartresearch.com/sprints/projects/sep1-a-soleegress-packagebroker-profile-for-modelevaluation-sandboxes-7kif">
-    <img src="assets/apart-logo.png" alt="Apart Research" height="100">
-  </a>
+  <img src="assets/apart-logo.png" alt="Apart Research" height="100">
 </p>
+
+🔗 **Project page:** [SEP-1 on Apart Research](https://apartresearch.com/sprints/projects/sep1-a-soleegress-packagebroker-profile-for-modelevaluation-sandboxes-7kif)
+
+**Track 1 (Containment) artifact for the Apart Research AI Incident Response Sprint.**
 
 **Track 1 (Containment) artifact for the Apart Research AI Incident Response Sprint.**
 
